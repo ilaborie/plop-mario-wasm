@@ -1,17 +1,16 @@
-import {attach_canvas} from "plop-mario-wasm";
+import {set_panic_hook} from "plop-mario-wasm";
+import {render} from "./render";
 
 (function () {
+    set_panic_hook();
+
     const canvas = document.createElement("canvas");
     canvas.id = "plop-mario";
     canvas.width = 640;
-    canvas.height = 480;
+    canvas.height = 640;
     document.body.appendChild(canvas);
 
-    attach_canvas(canvas.id);
-
-    // const ctx = canvas.getContext("2d");
-    // ctx.fillStyle = "rgba(0,100,0,.5)"
-    // ctx.fillRect(0, 0, 640, 480);
+    render(canvas);
 })();
 
 
