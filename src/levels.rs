@@ -1,9 +1,9 @@
+use wasm_bindgen::prelude::*;
 use crate::assets::Sprite;
-use wasm_bindgen::__rt::core::ops::Range;
-use wasm_bindgen::__rt::core::slice::Iter;
+use core::ops::Range;
+use core::slice::Iter;
 
-
-#[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Hash, Clone, Copy, PartialEq, Eq)]
 pub struct Ranges {
     x0: u32,
     x1: u32,
@@ -20,7 +20,7 @@ impl Ranges {
     }
 }
 
-#[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Hash, Clone, Copy, PartialEq, Eq)]
 pub struct Background {
     tile: Sprite,
     ranges: Ranges,
@@ -35,14 +35,19 @@ impl Background {
     }
 }
 
-#[derive(Deserialize, Hash, Clone, Debug, PartialEq, Eq)]
+#[wasm_bindgen]
+#[derive(Deserialize, Hash, Clone, PartialEq, Eq)]
 pub struct Level {
     backgrounds: Vec<Background>,
 }
 
+#[wasm_bindgen]
 impl Level {
-    pub fn backgrounds(&self) -> Iter<'_, Background> {
+    pub fn new(json: &JsValue) -> Self {
+        json.into_serde::<Level>().unwrap()
+    }
+
+    pub(crate) fn backgrounds(&self) -> Iter<'_, Background> {
         self.backgrounds.iter()
     }
 }
-

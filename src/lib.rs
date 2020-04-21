@@ -1,11 +1,11 @@
 mod utils;
 mod assets;
 mod levels;
+mod system;
+mod compositor;
+mod layers;
 
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use web_sys::HtmlCanvasElement;
-use crate::utils::set_panic_hook;
+// use wasm_bindgen::prelude::*;
 
 #[macro_use]
 extern crate serde_derive;
@@ -15,3 +15,4 @@ extern crate serde_derive;
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
