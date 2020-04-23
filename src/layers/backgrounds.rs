@@ -1,8 +1,8 @@
-use crate::assets::SpriteSheet;
-use crate::levels::Background;
 use crate::utils::create_buffer;
 use std::slice::Iter;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+use crate::assets::levels::Background;
+use crate::assets::sprites::SpriteSheet;
 
 pub struct BackgroundsLayer {
     buffer: HtmlCanvasElement,

@@ -2,8 +2,6 @@ use crate::entity::{Velocity, Position, Jumping};
 use std::rc::Rc;
 use std::cell::RefCell;
 
-
-#[derive()]
 pub enum EntityTrait {
     Velocity { position: Rc<RefCell<Position>>, velocity: Rc<RefCell<Velocity>> },
     Gravity { gravity: f64, velocity: Rc<RefCell<Velocity>> },
@@ -22,9 +20,6 @@ impl EntityTrait {
     pub fn new_jump(velocity: Rc<RefCell<Velocity>>, jumping: Rc<RefCell<Jumping>>) -> EntityTrait {
         EntityTrait::Jump { velocity, jumping }
     }
-
-    pub fn start(&mut self) {}
-    pub fn cancel(&mut self) {}
 
     pub fn update(&mut self, dt: f64) {
         match self {

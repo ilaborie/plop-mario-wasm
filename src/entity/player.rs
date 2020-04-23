@@ -1,12 +1,10 @@
-use crate::assets::{Sprite, SpriteSheet};
 use crate::entity::{Entity, Position, Velocity, Jumping};
-use wasm_bindgen::prelude::*;
 use web_sys::CanvasRenderingContext2d;
 use std::rc::Rc;
 use std::cell::RefCell;
 use crate::entity::traits::EntityTrait;
+use crate::assets::sprites::{SpriteSheet, Sprite};
 
-#[wasm_bindgen]
 pub struct PlayerEntity {
     sprites: SpriteSheet,
     sprite: Sprite,
@@ -16,7 +14,6 @@ pub struct PlayerEntity {
     jumping: Rc<RefCell<Jumping>>,
 }
 
-#[wasm_bindgen]
 impl PlayerEntity {
     pub fn new(sprite: Sprite, sprites: SpriteSheet, gravity: f64) -> Self {
         let mut entity = Entity::default();

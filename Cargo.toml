@@ -35,21 +35,22 @@ version = "0.3"
 version ="0.3"
 features = [
     # Basic DOM
+    "Window",
     "Document",
     "Element",
+    "Node",
     "EventTarget",
     "KeyboardEvent",
     # Drawing into a Canvas
     "CanvasRenderingContext2d",
     "HtmlCanvasElement",
     "HtmlImageElement",
-    "Window",
     # Fetch
-#    "Headers",
-#    "Request",
-#    "RequestInit",
-#    "RequestMode",
-#    "Response",
+    "Headers",
+    "Request",
+    "RequestInit",
+    "RequestMode",
+    "Response",
     # Performance
     "Performance",
 ]

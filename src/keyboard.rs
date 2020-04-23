@@ -1,12 +1,6 @@
-use std::collections::HashMap;
-use crate::utils::window;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use web_sys::KeyboardEvent;
-use std::rc::Rc;
-use std::cell::RefCell;
 
-pub type Callback = dyn FnMut(KeyState) -> ();
+
+// pub type Callback = dyn FnMut(KeyState) -> ();
 
 #[derive(Hash,Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Key {
@@ -46,17 +40,17 @@ impl KeyState {
     }
 }
 
-pub struct Keyboard {
-    key_states: Rc<RefCell<HashMap<Key, KeyState>>>,
-    key_map: Rc<RefCell<HashMap<Key, Box<Callback>>>>,
-}
-
-impl Keyboard {
-    pub fn new() -> Self {
-        let key_states = Rc::new(RefCell::new(HashMap::default()));
-        let key_map = Rc::new(RefCell::new(HashMap::default()));
-        Self { key_states, key_map }
-    }
+// pub struct Keyboard {
+//     key_states: Rc<RefCell<HashMap<Key, KeyState>>>,
+//     key_map: Rc<RefCell<HashMap<Key, Box<Callback>>>>,
+// }
+//
+// impl Keyboard {
+//     pub fn new() -> Self {
+//         let key_states = Rc::new(RefCell::new(HashMap::default()));
+//         let key_map = Rc::new(RefCell::new(HashMap::default()));
+//         Self { key_states, key_map }
+//     }
 
     // pub fn add_mapping(&mut self, key: &str, callback: Box<Callback>) {
     //     self.key_map.borrow_mut().insert(String::from(key), callback);
@@ -89,4 +83,4 @@ impl Keyboard {
 
             closure.forget();
         }*/
-}
+// }

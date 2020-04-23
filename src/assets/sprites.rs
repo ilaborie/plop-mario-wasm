@@ -1,21 +1,16 @@
-use crate::utils::create_buffer;
-use serde::Deserialize;
 use std::collections::HashMap;
-use wasm_bindgen::prelude::*;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
+use web_sys::{HtmlImageElement, HtmlCanvasElement,CanvasRenderingContext2d};
+use crate::utils::create_buffer;
 
-#[wasm_bindgen]
-#[repr(u32)]
-#[derive(Deserialize, Hash, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Hash, Clone, Copy, PartialEq, Eq)]
 pub enum Sprite {
     // Tiles
-    Ground = 0,
-    Sky = 1,
+    Ground,
+    Sky,
     // Mario
-    MarioIdle = 1000,
+    MarioIdle,
 }
 
-#[wasm_bindgen]
 pub struct SpriteSheet {
     image: HtmlImageElement,
     width: u32,
@@ -23,7 +18,6 @@ pub struct SpriteSheet {
     sprites: HashMap<Sprite, HtmlCanvasElement>,
 }
 
-#[wasm_bindgen]
 impl SpriteSheet {
     pub fn new(image: HtmlImageElement, width: u32, height: u32) -> Self {
         let sprites = HashMap::new();
