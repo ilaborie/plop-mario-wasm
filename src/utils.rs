@@ -4,6 +4,17 @@ use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement, Window};
 
 #[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    pub fn log(a: &str);
+}
+
+#[macro_export]
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+
+#[wasm_bindgen]
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
     // `set_panic_hook` function at least once during initialization, and then
@@ -12,7 +23,7 @@ pub fn set_panic_hook() {
     // For more details see
     // https://github.com/rustwasm/console_error_panic_hook#readme
     #[cfg(feature = "console_error_panic_hook")]
-        console_error_panic_hook::set_once();
+    console_error_panic_hook::set_once();
 }
 
 pub(crate) fn window() -> Window {
@@ -36,7 +47,8 @@ pub(crate) fn body() -> web_sys::HtmlElement {
 }
 
 pub(crate) fn time() -> f64 {
-    window().performance()
+    window()
+        .performance()
         .expect("window should have a performance")
         .now()
 }
@@ -53,7 +65,8 @@ pub(crate) fn canvas(width: u32, height: u32) -> HtmlCanvasElement {
 }
 
 pub(crate) fn context_2d(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
-    canvas.get_context("2d")
+    canvas
+        .get_context("2d")
         .unwrap()
         .unwrap()
         .dyn_into::<CanvasRenderingContext2d>()
@@ -61,7 +74,8 @@ pub(crate) fn context_2d(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d
 }
 
 pub(crate) fn create_buffer<T>(width: u32, height: u32, closure: T) -> HtmlCanvasElement
-    where T: FnOnce(CanvasRenderingContext2d) -> (),
+where
+    T: FnOnce(CanvasRenderingContext2d) -> (),
 {
     let buffer = canvas(width, height);
     let context = context_2d(&buffer);

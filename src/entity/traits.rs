@@ -1,40 +1,48 @@
-use crate::entity::{Velocity, Position, Jumping};
-use std::rc::Rc;
+use crate::physics::go::{Direction, Go};
+use crate::physics::jumping::Jumping;
+use crate::physics::velocity::Velocity;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 pub enum EntityTrait {
-    Velocity { position: Rc<RefCell<Position>>, velocity: Rc<RefCell<Velocity>> },
-    Gravity { gravity: f64, velocity: Rc<RefCell<Velocity>> },
-    Jump { velocity: Rc<RefCell<Velocity>>, jumping: Rc<RefCell<Jumping>> },
+    Jump {
+        velocity: Rc<RefCell<Velocity>>,
+        jumping: Rc<RefCell<Jumping>>,
+    },
+    Go {
+        velocity: Rc<RefCell<Velocity>>,
+        go: Rc<RefCell<Go>>,
+    },
 }
 
 impl EntityTrait {
-    pub fn new_velocity(position: Rc<RefCell<Position>>, velocity: Rc<RefCell<Velocity>>) -> EntityTrait {
-        EntityTrait::Velocity { position, velocity }
-    }
-
-    pub fn new_gravity(velocity: Rc<RefCell<Velocity>>, gravity: f64) -> EntityTrait {
-        EntityTrait::Gravity { velocity, gravity }
-    }
-
-    pub fn new_jump(velocity: Rc<RefCell<Velocity>>, jumping: Rc<RefCell<Jumping>>) -> EntityTrait {
+    pub fn jump(velocity: Rc<RefCell<Velocity>>, jumping: Rc<RefCell<Jumping>>) -> EntityTrait {
         EntityTrait::Jump { velocity, jumping }
+    }
+
+    pub fn go(velocity: Rc<RefCell<Velocity>>, go: Rc<RefCell<Go>>) -> EntityTrait {
+        EntityTrait::Go { velocity, go }
     }
 
     pub fn update(&mut self, dt: f64) {
         match self {
-            EntityTrait::Velocity { position, velocity } => {
-                position.borrow_mut().x += velocity.borrow().dx * dt;
-                position.borrow_mut().y += velocity.borrow().dy * dt;
-            }
-            EntityTrait::Gravity { gravity, velocity } => {
-                velocity.borrow_mut().dy += *gravity * dt;
-            }
             EntityTrait::Jump { velocity, jumping } => {
-                if jumping.borrow().engage_time > 0.0 {
-                    velocity.borrow_mut().dy += -jumping.borrow().velocity;
-                    jumping.borrow_mut().engage_time -= dt;
+                if jumping.borrow().engage_time() > 0.0 {
+                    velocity
+                        .borrow_mut()
+                        .incr_dy(-jumping.borrow().velocity() * dt);
+                    jumping.borrow_mut().decr_engage_time(dt);
                 }
+            }
+            EntityTrait::Go { velocity, go } => {
+                let factor = match go.borrow().direction {
+                    Direction::Right => 1.0,
+                    Direction::Left => -1.0,
+                    Direction::Stop => 0.0,
+                };
+                velocity
+                    .borrow_mut()
+                    .set_dx(factor * go.borrow().speed * dt);
             }
         }
     }

@@ -1,20 +1,19 @@
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsValue;
+use crate::entity::Updatable;
+use crate::layers::Drawable;
+use crate::system::System;
+use crate::utils::{body, canvas, context_2d, log, request_animation_frame, set_panic_hook, time};
 use std::cell::RefCell;
 use std::rc::Rc;
-use crate::utils::{ body, request_animation_frame, time, context_2d, canvas, set_panic_hook};
-use crate::assets::{load_player_sprites, load_background_sprites};
-use crate::system::System;
-use crate::entity::player::PlayerEntity;
-use crate::assets::levels::load_level;
-use crate::assets::sprites::Sprite;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 
 mod assets;
 mod entity;
+mod keyboard;
 mod layers;
+mod physics;
 mod system;
 mod utils;
-mod keyboard;
 
 #[macro_use]
 extern crate serde_derive;
@@ -25,45 +24,28 @@ extern crate serde_derive;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(a: &str);
-}
-
-macro_rules! console_log {
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-
 #[wasm_bindgen(start)]
 pub async fn run() -> Result<(), JsValue> {
     console_log!("Starting...");
     set_panic_hook();
 
+    // Canvas
+    let can = canvas(320, 320);
+    body().append_child(&can)?;
+    let context = context_2d(&can);
+
+    // System
+    let mut sys = System::create("lvl_1-1").await?;
+    sys.register_keyboard();
+    sys.debug_collision(&can);
+
+    // Timer
     let delta_time = 1.0 / 60.0;
     let mut last_time = 0.0;
     let mut accumulated_time = 0.0;
 
     let f = Rc::new(RefCell::new(None));
     let g = f.clone();
-
-    let can = canvas(640, 640);
-    body().append_child(&can)?;
-
-    // FIXME create System
-    let context = context_2d(&can);
-    let gravity= 3000.0;
-    let level = load_level("lvl_1-1").await?;
-    let bg_sprites = load_background_sprites().await?;
-    let player_sprites = load_player_sprites().await?;
-
-    let mut player_entity = PlayerEntity::new(Sprite::MarioIdle, player_sprites, gravity);
-    player_entity.set_position(64.0, 180.0);
-    player_entity.set_velocity(200.0, -600.0);
-
-    let mut sys = System::new(level, bg_sprites, player_entity);
-    sys.register_keyboard();
 
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
         // if system.stopped() {
@@ -76,7 +58,7 @@ pub async fn run() -> Result<(), JsValue> {
 
         while accumulated_time > delta_time {
             // console_log!("dt {}", delta_time);
-            sys.update_player(delta_time);
+            sys.update(delta_time);
             sys.draw(&context);
 
             accumulated_time -= delta_time;
@@ -88,5 +70,6 @@ pub async fn run() -> Result<(), JsValue> {
     }) as Box<dyn FnMut()>));
 
     request_animation_frame(g.borrow().as_ref().unwrap());
+
     Ok(())
 }

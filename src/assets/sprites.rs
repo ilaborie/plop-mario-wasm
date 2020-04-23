@@ -1,14 +1,23 @@
-use std::collections::HashMap;
-use web_sys::{HtmlImageElement, HtmlCanvasElement,CanvasRenderingContext2d};
 use crate::utils::create_buffer;
+use core::fmt;
+use fmt::Formatter;
+use std::collections::HashMap;
+use std::fmt::Display;
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
 
-#[derive(Serialize, Deserialize, Hash, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Sprite {
     // Tiles
     Ground,
     Sky,
     // Mario
     MarioIdle,
+}
+
+impl Display for Sprite {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 pub struct SpriteSheet {
@@ -58,14 +67,14 @@ impl SpriteSheet {
         self.sprites.insert(sprite, buffer);
     }
 
-    pub fn draw_image(&self, context: &CanvasRenderingContext2d, sprite: Sprite, x: f64, y: f64) {
+    pub fn draw_image(&self, context: &CanvasRenderingContext2d, sprite: &Sprite, x: f64, y: f64) {
         let buffer = self.sprites.get(&sprite).unwrap();
         context
             .draw_image_with_html_canvas_element(&buffer, x as f64, y as f64)
             .unwrap();
     }
 
-    pub fn draw_tile(&self, context: &CanvasRenderingContext2d, sprite: Sprite, x: f64, y: f64) {
+    pub fn draw_tile(&self, context: &CanvasRenderingContext2d, sprite: &Sprite, x: f64, y: f64) {
         self.draw_image(
             context,
             sprite,

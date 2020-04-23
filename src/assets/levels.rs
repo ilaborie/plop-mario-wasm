@@ -1,13 +1,13 @@
+use crate::assets::sprites::Sprite;
+use crate::utils::window;
 use core::ops::Range;
 use core::slice::Iter;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
-use crate::utils::window;
-use crate::assets::sprites::Sprite;
 
-#[derive(Serialize, Deserialize, Hash, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Ranges {
     x0: u32,
     x1: u32,
@@ -24,33 +24,33 @@ impl Ranges {
     }
 }
 
-#[derive(Serialize, Deserialize, Hash, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize)]
 pub struct Background {
     tile: Sprite,
-    ranges: Ranges,
+    ranges: Vec<Ranges>,
 }
 
 impl Background {
     pub fn tile(&self) -> Sprite {
         self.tile
     }
-    pub fn ranges(&self) -> Ranges {
-        self.ranges
+    pub fn ranges(&self) -> Iter<'_, Ranges> {
+        self.ranges.iter()
     }
 }
 
-#[derive(Serialize, Deserialize, Hash, Clone, PartialEq, Eq)]
-pub struct Level {
+#[derive(Serialize, Deserialize)]
+pub struct LevelDefinition {
     backgrounds: Vec<Background>,
 }
 
-impl Level {
+impl LevelDefinition {
     pub(crate) fn backgrounds(&self) -> Iter<'_, Background> {
         self.backgrounds.iter()
     }
 }
 
-pub async fn load_level(name: &str) -> Result<Level, JsValue> {
+pub async fn load_level(name: &str) -> Result<LevelDefinition, JsValue> {
     let url = format!("/levels/{}.json", name);
     let request = Request::new_with_str(&url)?;
 
@@ -58,7 +58,6 @@ pub async fn load_level(name: &str) -> Result<Level, JsValue> {
     let resp: Response = resp_value.dyn_into().unwrap();
     let json = JsFuture::from(resp.json()?).await?;
 
-    let level = json.into_serde::<Level>().unwrap();
+    let level = json.into_serde::<LevelDefinition>().unwrap();
     Ok(level)
 }
-

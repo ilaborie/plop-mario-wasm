@@ -1,11 +1,11 @@
+use crate::assets::sprites::{Sprite, SpriteSheet};
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlImageElement;
-use crate::assets::sprites::{SpriteSheet, Sprite};
 
-pub mod sprites;
 pub mod levels;
+pub mod sprites;
 
 #[wasm_bindgen]
 extern "C" {
@@ -16,9 +16,7 @@ extern "C" {
 async fn load_image(path: &str) -> Result<HtmlImageElement, JsValue> {
     let promise = loadImage(path);
     let result = wasm_bindgen_futures::JsFuture::from(promise).await?;
-    let image = result
-        .dyn_into::<HtmlImageElement>()
-        .unwrap();
+    let image = result.dyn_into::<HtmlImageElement>().unwrap();
 
     Ok(image)
 }
@@ -39,4 +37,3 @@ pub async fn load_player_sprites() -> Result<SpriteSheet, JsValue> {
 
     Ok(sprites)
 }
-
