@@ -38,19 +38,20 @@ features = [
     "Document",
     "Element",
     "EventTarget",
+    "KeyboardEvent",
     # Drawing into a Canvas
     "CanvasRenderingContext2d",
     "HtmlCanvasElement",
+    "HtmlImageElement",
     "Window",
     # Fetch
-    "Headers",
-    "Request",
-    "RequestInit",
-    "RequestMode",
-    "Response",
-    "Window",
-    # Image
-    "HtmlImageElement",
+#    "Headers",
+#    "Request",
+#    "RequestInit",
+#    "RequestMode",
+#    "Response",
+    # Performance
+    "Performance",
 ]
 
 [dev-dependencies]

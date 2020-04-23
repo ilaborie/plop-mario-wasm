@@ -1,7 +1,7 @@
-use wasm_bindgen::prelude::*;
 use crate::assets::Sprite;
 use core::ops::Range;
 use core::slice::Iter;
+use wasm_bindgen::prelude::*;
 
 #[derive(Deserialize, Hash, Clone, Copy, PartialEq, Eq)]
 pub struct Ranges {

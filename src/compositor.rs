@@ -1,34 +1,7 @@
-use web_sys::CanvasRenderingContext2d;
-use std::rc::Rc;
 use crate::layers::Layer;
+use std::rc::Rc;
+use web_sys::CanvasRenderingContext2d;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Position {
-    x: u32,
-    y: u32,
-}
-
-impl Position {
-    pub(crate) fn new(x: u32, y: u32) -> Self {
-        Self { x, y }
-    }
-
-    pub(crate) fn x(&self) -> u32 {
-        self.x
-    }
-
-    pub(crate) fn y(&self) -> u32 {
-        self.y
-    }
-
-    pub(crate) fn update(&mut self, incr_x: u32, incr_y: u32) {
-        self.x += incr_x;
-        self.y += incr_y;
-    }
-}
-
-
-// Compositor
 pub struct Compositor {
     layers: Vec<Rc<Layer>>,
 }

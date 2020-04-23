@@ -1,11 +1,11 @@
-mod utils;
 mod assets;
+mod compositor;
+mod entity;
+mod layers;
 mod levels;
 mod system;
-mod compositor;
-mod layers;
-
-// use wasm_bindgen::prelude::*;
+mod utils;
+mod keyboard;
 
 #[macro_use]
 extern crate serde_derive;
@@ -15,4 +15,3 @@ extern crate serde_derive;
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-

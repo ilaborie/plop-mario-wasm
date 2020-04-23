@@ -34,10 +34,23 @@
         canvas {
             background: white;
         }
+
+        #fps {
+            position: fixed;
+            top: 0;
+            right: 0;
+            font-family: monospace;
+        }
+        #fps::before {content: '[';}
+        #fps::after {content: ']';}
     </style>
 </head>
 <body>
 <h1>Plop Mario WASM</h1>
+
+<aside id="fps"><span class="min"></span>,
+<strong class="avg"></strong>,
+<span class="max"></span></aside>
 
 
 <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
