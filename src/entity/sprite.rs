@@ -1,32 +1,29 @@
-use crate::assets::sprites::{Sprite, SpriteSheet};
+use crate::assets::sprites::Sprite;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Updatable};
-use crate::layers::Drawable;
-use crate::physics::go::{Direction, Go};
 use crate::physics::jumping::Jumping;
+use crate::physics::motion::{Direction, Motion};
 use crate::physics::position::Position;
 use crate::physics::size::Size;
 use crate::physics::velocity::Velocity;
+use fmt::{Debug, Formatter};
 use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Display;
 use std::rc::Rc;
-use wasm_bindgen::__rt::core::fmt::{Debug, Formatter};
-use web_sys::CanvasRenderingContext2d;
 
 pub struct SpriteEntity {
-    sprites: SpriteSheet,
     sprite: Sprite,
     entity: Entity,
     size: Rc<RefCell<Size>>,
     position: Rc<RefCell<Position>>,
     velocity: Rc<RefCell<Velocity>>,
     jumping: Rc<RefCell<Jumping>>,
-    go: Rc<RefCell<Go>>,
+    go: Rc<RefCell<Motion>>,
 }
 
 impl SpriteEntity {
-    pub fn new(sprite: Sprite, sprites: SpriteSheet, size: Size, jumping: Jumping, go: Go) -> Self {
+    pub fn new(sprite: Sprite, size: Size, jumping: Jumping, go: Motion) -> Self {
         let mut entity = Entity::default();
         let position = Rc::new(RefCell::new(Position::new()));
         let velocity = Rc::new(RefCell::new(Velocity::new()));
@@ -45,13 +42,16 @@ impl SpriteEntity {
         Self {
             entity,
             sprite,
-            sprites,
             position,
             velocity,
             jumping,
             size,
             go,
         }
+    }
+
+    pub fn sprite(&self) -> Sprite {
+        self.sprite
     }
     pub fn jump_start(&mut self) {
         self.jumping.borrow_mut().start();
@@ -125,14 +125,6 @@ impl Debug for SpriteEntity {
             dx = dx,
             dy = dy
         )
-    }
-}
-
-impl Drawable for SpriteEntity {
-    fn draw(&self, context: &CanvasRenderingContext2d) {
-        let (x, y) = self.position();
-        // log(&format!("Before draw> {}", self));
-        self.sprites.draw_image(&context, &self.sprite, x, y);
     }
 }
 

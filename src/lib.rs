@@ -1,5 +1,5 @@
+use crate::assets::TILE_SIZE;
 use crate::entity::Updatable;
-use crate::layers::Drawable;
 use crate::system::System;
 use crate::utils::{body, canvas, context_2d, log, request_animation_frame, set_panic_hook, time};
 use std::cell::RefCell;
@@ -8,9 +8,11 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 
 mod assets;
+mod camera;
 mod entity;
 mod keyboard;
 mod layers;
+mod level;
 mod physics;
 mod system;
 mod utils;
@@ -30,14 +32,14 @@ pub async fn run() -> Result<(), JsValue> {
     set_panic_hook();
 
     // Canvas
-    let can = canvas(320, 320);
+    let can = canvas(TILE_SIZE * 20, TILE_SIZE * 14);
     body().append_child(&can)?;
     let context = context_2d(&can);
 
     // System
-    let mut sys = System::create("lvl_1-1").await?;
+    let mut sys = System::create("lvl_1-1", "mario").await?;
     sys.register_keyboard();
-    sys.debug_collision(&can);
+    sys.register_mouse(&can);
 
     // Timer
     let delta_time = 1.0 / 60.0;

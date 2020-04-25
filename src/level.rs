@@ -1,86 +1,88 @@
 use crate::assets::levels::LevelDefinition;
-use crate::assets::sprites::{Sprite, SpriteSheet};
+use crate::assets::sprites::SpriteSheet;
+use crate::camera::Camera;
 use crate::entity::sprite::SpriteEntity;
 use crate::entity::Updatable;
 use crate::layers::backgrounds::BackgroundsLayer;
+use crate::layers::camera::CameraLayer;
 use crate::layers::collision::CollisionLayer;
+use crate::layers::sprite::SpriteLayer;
 use crate::layers::{Compositor, Drawable};
 use crate::physics::gravity_force::GravityForce;
-use crate::physics::matrix::Matrix;
+use crate::physics::size::Size;
 use crate::physics::tile_collider::TileCollider;
 use core::cell::RefCell;
 use std::rc::Rc;
+use wasm_bindgen::JsValue;
 use web_sys::CanvasRenderingContext2d;
 
-pub struct LevelEntity {
+pub struct Level {
     compositor: Compositor,
     entities: Vec<Rc<RefCell<SpriteEntity>>>,
     tile_collider: Rc<TileCollider>,
-    tiles: Rc<RefCell<Matrix<Sprite>>>,
     gravity: GravityForce,
 }
 
-impl LevelEntity {
-    pub fn new(level_def: LevelDefinition) -> Self {
-        let compositor = Compositor::default();
-        let entities = vec![];
-        let mut tiles = Matrix::new();
+impl Level {
+    pub async fn load(level: &str, camera: Rc<RefCell<Camera>>) -> Result<Self, JsValue> {
         let gravity = GravityForce::new(4000.0);
 
-        for bg in level_def.backgrounds() {
-            for range in bg.ranges() {
-                for x in range.x() {
-                    for y in range.y() {
-                        tiles.set(x as usize, y as usize, bg.tile());
-                    }
-                }
-            }
-        }
+        let level_def = LevelDefinition::load(level).await?;
+        let (tiles, bg_sprites) = level_def.build().await?;
+        let entities = vec![];
+
         let tiles = Rc::new(RefCell::new(tiles));
         let tile_collider = Rc::new(TileCollider::new(tiles.clone()));
 
-        Self {
+        let mut compositor = Compositor::default();
+
+        let bg_layer =
+            BackgroundsLayer::new(tiles.clone(), bg_sprites, tile_collider.resolver().clone());
+        compositor.add_layer(Rc::new(RefCell::new(bg_layer)));
+
+        let camera_layer = CameraLayer::new(camera);
+        compositor.add_layer(Rc::new(RefCell::new(camera_layer)));
+
+        let result = Self {
             compositor,
             entities,
-            tiles,
             tile_collider,
             gravity,
-        }
+        };
+        Ok(result)
     }
 
-    pub fn tiles(&self) -> Rc<RefCell<Matrix<Sprite>>> {
-        self.tiles.clone()
-    }
     pub fn tiles_collider(&self) -> Rc<TileCollider> {
         self.tile_collider.clone()
     }
 
-    pub fn add_background(&mut self, sprites: &SpriteSheet) {
-        let bg_layer = BackgroundsLayer::new(self, sprites);
-        self.compositor
-            .add_layer(Rc::new(move |ctx| bg_layer.draw(ctx)));
-    }
-
-    pub fn add_entity(&mut self, entity: Rc<RefCell<SpriteEntity>>) {
+    pub fn add_entity(
+        &mut self,
+        entity: Rc<RefCell<SpriteEntity>>,
+        sprites: Rc<SpriteSheet>,
+        size: Size,
+        show_collision: bool,
+    ) {
         self.entities.push(entity.clone());
 
-        let collision = CollisionLayer::new(&self, entity.clone());
-        self.compositor
-            .add_layer(Rc::new(move |ctx| collision.draw(ctx)));
-    }
-}
-
-impl Drawable for LevelEntity {
-    fn draw(&self, context: &CanvasRenderingContext2d) {
-        self.compositor.draw(context);
-
-        for entity in self.entities.iter() {
-            entity.borrow().draw(context);
+        if show_collision {
+            let collision = CollisionLayer::new(&self, entity.clone());
+            self.compositor.add_layer(Rc::new(RefCell::new(collision)));
         }
+
+        //
+        let layer = SpriteLayer::new(entity.clone(), sprites, size);
+        self.compositor.add_layer(Rc::new(RefCell::new(layer)));
     }
 }
 
-impl Updatable for LevelEntity {
+impl Drawable for Level {
+    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>) {
+        self.compositor.draw(context, camera.clone());
+    }
+}
+
+impl Updatable for Level {
     fn update(&mut self, dt: f64) {
         for entity in self.entities.iter() {
             // log(&format!("Before upd> {:?}", entity.borrow()));

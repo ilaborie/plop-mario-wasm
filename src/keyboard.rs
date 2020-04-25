@@ -1,5 +1,3 @@
-// pub type Callback = dyn FnMut(KeyState) -> ();
-
 #[derive(Hash, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Key {
     Space,
@@ -38,48 +36,3 @@ impl KeyState {
         }
     }
 }
-
-// pub struct Keyboard {
-//     key_states: Rc<RefCell<HashMap<Key, KeyState>>>,
-//     key_map: Rc<RefCell<HashMap<Key, Box<Callback>>>>,
-// }
-//
-// impl Keyboard {
-//     pub fn new() -> Self {
-//         let key_states = Rc::new(RefCell::new(HashMap::default()));
-//         let key_map = Rc::new(RefCell::new(HashMap::default()));
-//         Self { key_states, key_map }
-//     }
-
-// pub fn add_mapping(&mut self, key: &str, callback: Box<Callback>) {
-//     self.key_map.borrow_mut().insert(String::from(key), callback);
-// }
-/*
-pub fn listen_to<T: 'static>(&mut self, event_type: &str, callback: Rc<RefCell<T>>)
-    where T: FnMut(Key, KeyState) -> () {
-    let states = self.key_states.clone();
-    let cb = callback.clone();
-
-    let closure = Closure::wrap(Box::new(move |event: KeyboardEvent| {
-        let key = event.code() as Key;
-        let state = KeyState::from_event_type(event.type_());
-
-        // let m = mapping.borrow();
-        // let opt = m.get(&key);
-        // match opt {
-        //     None => event.prevent_default(),
-        //     Some(callback) => {
-        let upd = states.borrow_mut().insert(key.clone(), state);
-        if upd != Some(state) {
-            cb.borrow_mut()(key, state);
-        }
-        //     }
-        // }
-    }) as Box<dyn FnMut(_)>);
-
-    window().add_event_listener_with_callback(event_type, closure.as_ref().unchecked_ref())
-        .expect("Cannot listen the event");
-
-    closure.forget();
-}*/
-// }

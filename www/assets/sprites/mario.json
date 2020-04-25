@@ -1,0 +1,6 @@
+{
+  "image": "assets/images/characters.gif",
+  "sprites":[
+    { "tile": "MarioIdle", "x": 276, "y": 44 }
+  ]
+}

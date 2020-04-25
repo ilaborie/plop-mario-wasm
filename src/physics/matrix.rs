@@ -4,7 +4,7 @@ pub struct Matrix<T> {
     grid: HashMap<usize, HashMap<usize, T>>,
 }
 
-impl<T> Matrix<T> {
+impl<T: Clone> Matrix<T> {
     pub fn new() -> Self {
         let grid = HashMap::new();
         Self { grid }
@@ -16,15 +16,8 @@ impl<T> Matrix<T> {
         }
         let col = self.grid.get_mut(&x).unwrap();
 
-        let cell = col.get_mut(&y);
-        match cell {
-            None => {
-                col.insert(y, elt);
-            }
-            Some(c) => {
-                *c = elt;
-            }
-        };
+        // log(&format!("Set ({}, {}) = {}", x, y, elt).to_string());
+        *col.entry(y).or_insert(elt.clone()) = elt.clone();
     }
 
     pub fn get(&self, x: usize, y: usize) -> Option<&T> {

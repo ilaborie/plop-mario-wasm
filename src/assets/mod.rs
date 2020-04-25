@@ -1,4 +1,3 @@
-use crate::assets::sprites::{Sprite, SpriteSheet};
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -6,6 +5,8 @@ use web_sys::HtmlImageElement;
 
 pub mod levels;
 pub mod sprites;
+
+pub const TILE_SIZE: u32 = 16;
 
 #[wasm_bindgen]
 extern "C" {
@@ -19,21 +20,4 @@ async fn load_image(path: &str) -> Result<HtmlImageElement, JsValue> {
     let image = result.dyn_into::<HtmlImageElement>().unwrap();
 
     Ok(image)
-}
-
-pub async fn load_background_sprites() -> Result<SpriteSheet, JsValue> {
-    let img = load_image("assets/tiles.png").await?;
-    let mut sprites = SpriteSheet::new(img, 16, 16);
-    sprites.define_tile(Sprite::Ground, 0, 0);
-    sprites.define_tile(Sprite::Sky, 3, 23);
-
-    Ok(sprites)
-}
-
-pub async fn load_player_sprites() -> Result<SpriteSheet, JsValue> {
-    let img = load_image("assets/characters.gif").await?;
-    let mut sprites = SpriteSheet::new(img, 16, 16);
-    sprites.define(Sprite::MarioIdle, 276, 44, 16, 16);
-
-    Ok(sprites)
 }

@@ -1,0 +1,15 @@
+{
+  "view": {
+    "width": 20,
+    "height": 14
+  },
+  "jumping": {
+    "duration": 0.25,
+    "velocity": 12000
+  },
+  "motion": {
+    "direction": "Right",
+    "speed": 8000
+  },
+  "gravity": 4000
+}

@@ -1,3 +1,4 @@
+use crate::assets::levels::Kind;
 use crate::assets::sprites::Sprite;
 use crate::physics::matrix::Matrix;
 use std::cell::RefCell;
@@ -5,9 +6,10 @@ use std::ops::Range;
 use std::rc::Rc;
 
 //
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct TileData {
-    pub(crate) tile: Sprite,
+    pub(crate) sprite: Sprite,
+    pub(crate) tile: Option<Kind>,
     pub(crate) top: f64,
     pub(crate) right: f64,
     pub(crate) bottom: f64,
@@ -15,8 +17,16 @@ pub struct TileData {
 }
 
 impl TileData {
-    pub fn new(tile: Sprite, top: f64, right: f64, bottom: f64, left: f64) -> Self {
+    pub fn new(
+        sprite: Sprite,
+        tile: Option<Kind>,
+        top: f64,
+        right: f64,
+        bottom: f64,
+        left: f64,
+    ) -> Self {
         Self {
+            sprite,
             tile,
             left,
             top,
@@ -28,12 +38,12 @@ impl TileData {
 
 //
 pub struct TileResolver {
-    tiles: Rc<RefCell<Matrix<Sprite>>>,
+    tiles: Rc<RefCell<Matrix<TileData>>>,
     tile_size: u32,
 }
 
 impl TileResolver {
-    pub fn new(tiles: Rc<RefCell<Matrix<Sprite>>>, tile_size: u32) -> Self {
+    pub fn new(tiles: Rc<RefCell<Matrix<TileData>>>, tile_size: u32) -> Self {
         Self { tiles, tile_size }
     }
 
@@ -41,6 +51,9 @@ impl TileResolver {
         self.tile_size
     }
 
+    pub fn to_index(&self, value: f64) -> u32 {
+        (value / self.tile_size as f64).floor() as u32
+    }
     pub fn to_index_range(&self, pos1: f64, pos2: f64) -> Range<u32> {
         let p_min = (pos1.min(pos2) / self.tile_size as f64).floor() as u32;
         let p_max = (pos1.max(pos2) / self.tile_size as f64).ceil() as u32;
@@ -48,17 +61,7 @@ impl TileResolver {
     }
 
     fn get_by_index(&self, x: u32, y: u32) -> Option<TileData> {
-        self.tiles.borrow().get(x as usize, y as usize).map(|&elt| {
-            let left = (x * self.tile_size) as f64;
-            let top = (y * self.tile_size) as f64;
-            TileData::new(
-                elt,
-                top,
-                left + self.tile_size as f64,
-                top + self.tile_size as f64,
-                left,
-            )
-        })
+        self.tiles.borrow().get(x as usize, y as usize).map(|x| *x)
     }
 
     pub fn search_by_range(&self, x: f64, y: f64, width: u32, height: u32) -> Vec<TileData> {

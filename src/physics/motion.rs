@@ -6,13 +6,13 @@ pub enum Direction {
 }
 
 #[derive(Clone, Copy)]
-pub struct Go {
+pub struct Motion {
     speed_base: f64,
     pub(crate) direction: Direction,
     pub(crate) speed: f64,
 }
 
-impl Go {
+impl Motion {
     pub fn new(direction: Direction, speed_base: f64) -> Self {
         let speed = 0.0;
         Self {

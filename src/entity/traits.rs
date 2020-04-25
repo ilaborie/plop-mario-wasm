@@ -1,5 +1,5 @@
-use crate::physics::go::{Direction, Go};
 use crate::physics::jumping::Jumping;
+use crate::physics::motion::{Direction, Motion};
 use crate::physics::velocity::Velocity;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -11,7 +11,7 @@ pub enum EntityTrait {
     },
     Go {
         velocity: Rc<RefCell<Velocity>>,
-        go: Rc<RefCell<Go>>,
+        go: Rc<RefCell<Motion>>,
     },
 }
 
@@ -20,7 +20,7 @@ impl EntityTrait {
         EntityTrait::Jump { velocity, jumping }
     }
 
-    pub fn go(velocity: Rc<RefCell<Velocity>>, go: Rc<RefCell<Go>>) -> EntityTrait {
+    pub fn go(velocity: Rc<RefCell<Velocity>>, go: Rc<RefCell<Motion>>) -> EntityTrait {
         EntityTrait::Go { velocity, go }
     }
 

@@ -3,6 +3,8 @@ use crate::entity::traits::EntityTrait;
 pub mod sprite;
 pub mod traits;
 
+pub const ENTITY_SIZE: u32 = 64;
+
 pub trait Updatable {
     fn update(&mut self, dt: f64);
 }

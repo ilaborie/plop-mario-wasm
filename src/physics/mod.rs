@@ -1,7 +1,7 @@
-pub mod go;
 pub mod gravity_force;
 pub mod jumping;
 pub mod matrix;
+pub mod motion;
 pub mod position;
 pub mod size;
 pub mod tile_collider;

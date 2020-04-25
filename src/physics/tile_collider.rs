@@ -1,7 +1,8 @@
-use crate::assets::sprites::Sprite;
+use crate::assets::levels::Kind;
+use crate::assets::TILE_SIZE;
 use crate::entity::sprite::SpriteEntity;
 use crate::physics::matrix::Matrix;
-use crate::physics::tile_resolver::TileResolver;
+use crate::physics::tile_resolver::{TileData, TileResolver};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -10,8 +11,8 @@ pub struct TileCollider {
 }
 
 impl TileCollider {
-    pub fn new(tiles: Rc<RefCell<Matrix<Sprite>>>) -> Self {
-        let resolver = Rc::new(TileResolver::new(tiles.clone(), 16));
+    pub fn new(tiles: Rc<RefCell<Matrix<TileData>>>) -> Self {
+        let resolver = Rc::new(TileResolver::new(tiles.clone(), TILE_SIZE));
         Self { resolver }
     }
 
@@ -32,7 +33,7 @@ impl TileCollider {
         let x_test = if dx > 0.0 { x + width as f64 } else { x };
 
         for tile_data in self.resolver.search_by_range(x_test, y, 0, height) {
-            if tile_data.tile != Sprite::Ground {
+            if tile_data.tile != Some(Kind::Ground) {
                 continue;
             }
             let (dx, _dy) = entity.borrow().velocity();
@@ -43,7 +44,7 @@ impl TileCollider {
                     // log(&format!("RIGHT, {x0:.1}..{x1:.1} collide with {d:?}", x0 = x, x1 = x + width as f64, d = tile_data).to_string());
                     entity.borrow_mut().set_x(tile_data.left - width as f64);
                     entity.borrow_mut().set_dx(0.0);
-                    entity.borrow_mut().stop_move();
+                    // entity.borrow_mut().stop_move();
                     // FIXME could return
                 }
             } else if dx < 0.0 {
@@ -51,7 +52,7 @@ impl TileCollider {
                     // log(&format!("LEFT, {x0:.1}..{x1:.1} collide with {d:?}", x0 = x, x1 = x + width as f64, d = tile_data).to_string());
                     entity.borrow_mut().set_x(tile_data.right);
                     entity.borrow_mut().set_dx(0.0);
-                    entity.borrow_mut().stop_move();
+                    // entity.borrow_mut().stop_move();
                     // FIXME could return
                 }
             }
@@ -71,7 +72,7 @@ impl TileCollider {
         let y_test = if dy > 0.0 { y + height as f64 } else { y };
         let tiles = self.resolver.search_by_range(x, y_test, width, 0);
         for tile_data in tiles.iter() {
-            if tile_data.tile != Sprite::Ground {
+            if tile_data.tile != Some(Kind::Ground) {
                 continue;
             }
             let (_x, y) = entity.borrow().position();
