@@ -1,6 +1,26 @@
 {
   "image": "assets/images/characters.gif",
-  "sprites":[
-    { "tile": "MarioIdle", "x": 276, "y": 44 }
-  ]
+  "sprites": [],
+  "animations": [{
+    "name": "Mario",
+    "speedRatio": 15,
+    "idle": {
+      "frame": "Idle",
+      "rect": { "x": 276, "y": 44, "width": 16, "height": 16}
+    },
+    "frames": [
+      {
+        "frame": "Run1",
+        "rect": { "x": 290, "y": 44, "width": 16, "height": 16}
+      },
+      {
+        "frame": "Run2",
+        "rect": { "x": 304, "y": 44, "width": 16, "height": 16}
+      },
+      {
+        "frame": "Run3",
+        "rect": { "x": 321, "y": 44, "width": 16, "height": 16}
+      }
+    ]
+  }]
 }

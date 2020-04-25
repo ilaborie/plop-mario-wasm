@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use web_sys::CanvasRenderingContext2d;
 
+pub mod animation;
 pub mod backgrounds;
 pub mod camera;
 pub mod collision;

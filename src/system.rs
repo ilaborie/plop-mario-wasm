@@ -1,7 +1,8 @@
-use crate::assets::sprites::{Sprite, SpriteSheet};
+use crate::assets::animations::AnimationName;
+use crate::assets::sprites::SpriteSheet;
 use crate::assets::TILE_SIZE;
 use crate::camera::Camera;
-use crate::entity::sprite::SpriteEntity;
+use crate::entity::animation::AnimationEntity;
 use crate::entity::{Updatable, ENTITY_SIZE};
 use crate::keyboard::Key::*;
 use crate::keyboard::KeyState::*;
@@ -22,7 +23,7 @@ use web_sys::{CanvasRenderingContext2d, Event, HtmlCanvasElement, KeyboardEvent,
 
 pub struct System {
     level: Rc<RefCell<Level>>,
-    pub(crate) player: Rc<RefCell<SpriteEntity>>,
+    pub(crate) player: Rc<RefCell<AnimationEntity>>,
     key_states: Rc<RefCell<HashMap<Key, KeyState>>>,
     camera: Rc<RefCell<Camera>>,
 }
@@ -35,8 +36,9 @@ impl System {
         let mut level = Level::load(level, camera.clone()).await?;
         let player_sprites = SpriteSheet::load(player).await?;
 
-        let mut player_entity = SpriteEntity::new(
-            Sprite::MarioIdle,
+        let anim_player = AnimationName::Mario;
+        let mut player_entity = AnimationEntity::new(
+            anim_player,
             Size::new(14, TILE_SIZE),
             Jumping::new(0.25, 12_000.),
             Motion::new(Direction::Right, 8_000.),
@@ -46,7 +48,13 @@ impl System {
 
         let player = Rc::new(RefCell::new(player_entity));
         let player_size = Size::new(ENTITY_SIZE, ENTITY_SIZE);
-        level.add_entity(player.clone(), Rc::new(player_sprites), player_size, true);
+        level.add_entity(
+            player.clone(),
+            Rc::new(player_sprites),
+            anim_player,
+            player_size,
+            false,
+        );
 
         let level = Rc::new(RefCell::new(level));
 
@@ -87,7 +95,7 @@ impl System {
             }
         }) as Box<dyn FnMut(_)>);
 
-        for event in vec!["keydown", "keyup"] {
+        for event in ["keydown", "keyup"].iter() {
             window()
                 .add_event_listener_with_callback(event, closure.as_ref().unchecked_ref())
                 .expect("Cannot listen the event");
@@ -123,7 +131,7 @@ impl System {
             last_event_x.set(event.offset_x());
         }) as Box<dyn FnMut(_)>);
 
-        for event in vec!["mousedown", "mousemove"] {
+        for event in ["mousedown", "mousemove"].iter() {
             canvas
                 .add_event_listener_with_callback(event, closure.as_ref().unchecked_ref())
                 .expect("Cannot listen event");

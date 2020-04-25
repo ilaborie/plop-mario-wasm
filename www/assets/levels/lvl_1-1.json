@@ -1,5 +1,5 @@
 {
-  "spriteSheet": "overworld",
+    "spriteSheet": "overworld",
 
   "backgrounds": [
     {
@@ -126,7 +126,10 @@
     {
       "sprite": "chance",
       "type": "ground",
+      "animation": "Chance",
       "ranges": [
+        [3, 2],
+
         [23, 9],
         [28, 9],
         [30, 9],

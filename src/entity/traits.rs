@@ -11,7 +11,7 @@ pub enum EntityTrait {
     },
     Go {
         velocity: Rc<RefCell<Velocity>>,
-        go: Rc<RefCell<Motion>>,
+        motion: Rc<RefCell<Motion>>,
     },
 }
 
@@ -20,8 +20,8 @@ impl EntityTrait {
         EntityTrait::Jump { velocity, jumping }
     }
 
-    pub fn go(velocity: Rc<RefCell<Velocity>>, go: Rc<RefCell<Motion>>) -> EntityTrait {
-        EntityTrait::Go { velocity, go }
+    pub fn go(velocity: Rc<RefCell<Velocity>>, motion: Rc<RefCell<Motion>>) -> EntityTrait {
+        EntityTrait::Go { velocity, motion }
     }
 
     pub fn update(&mut self, dt: f64) {
@@ -34,15 +34,22 @@ impl EntityTrait {
                     jumping.borrow_mut().decr_engage_time(dt);
                 }
             }
-            EntityTrait::Go { velocity, go } => {
-                let factor = match go.borrow().direction {
+            EntityTrait::Go { velocity, motion } => {
+                let direction = motion.borrow().direction;
+                let factor = match direction {
                     Direction::Right => 1.0,
                     Direction::Left => -1.0,
                     Direction::Stop => 0.0,
                 };
                 velocity
                     .borrow_mut()
-                    .set_dx(factor * go.borrow().speed * dt);
+                    .set_dx(factor * motion.borrow().speed * dt);
+
+                if direction == Direction::Stop {
+                    motion.borrow_mut().distance = 0.;
+                } else {
+                    motion.borrow_mut().distance += (velocity.borrow().dx() * dt).abs();
+                }
             }
         }
     }

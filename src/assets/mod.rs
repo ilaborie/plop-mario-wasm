@@ -1,8 +1,10 @@
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::JsValue;
 use web_sys::HtmlImageElement;
 
+pub mod animations;
 pub mod levels;
 pub mod sprites;
 

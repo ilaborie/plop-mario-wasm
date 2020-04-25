@@ -3,10 +3,11 @@ use crate::assets::TILE_SIZE;
 use crate::camera::Camera;
 use crate::layers::Drawable;
 use crate::physics::matrix::Matrix;
+use crate::physics::motion::Direction;
 use crate::physics::tile_resolver::{TileData, TileResolver};
 use crate::utils::{canvas, context_2d};
 use core::ops::RangeInclusive;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
@@ -17,6 +18,7 @@ pub struct BackgroundsLayer {
     sprites: SpriteSheet,
     revolver: Rc<TileResolver>,
     range: RangeInclusive<usize>,
+    distance: Rc<Cell<f64>>,
 }
 
 impl BackgroundsLayer {
@@ -24,6 +26,7 @@ impl BackgroundsLayer {
         tiles: Rc<RefCell<Matrix<TileData>>>,
         sprites: SpriteSheet,
         revolver: Rc<TileResolver>,
+        distance: Rc<Cell<f64>>,
     ) -> Self {
         let width = 17 * TILE_SIZE;
         let height = 15 * TILE_SIZE;
@@ -38,6 +41,7 @@ impl BackgroundsLayer {
             sprites,
             revolver,
             range,
+            distance,
         }
     }
 
@@ -66,10 +70,29 @@ impl Drawable for BackgroundsLayer {
         let draw_to = draw_from + draw_width as usize;
         let range = draw_from..=draw_to;
 
-        self.redraw(range);
+        self.redraw(range.clone());
 
         context
             .draw_image_with_html_canvas_element(&self.buffer, -cam_x % TILE_SIZE as f64, -cam_y)
             .unwrap();
+
+        // Animations
+        let dist = self.distance.get();
+        for (x, y, data) in self.tiles.borrow().iter() {
+            if let Some(animation) = data.animation {
+                if range.contains(&x) {
+                    let ax = (x - *range.start()) * self.sprites.width() as usize;
+                    let ay = y * self.sprites.height() as usize;
+                    self.sprites.draw_animation(
+                        &self.buffer_context,
+                        animation,
+                        ax as f64,
+                        ay as f64,
+                        Direction::Right,
+                        dist,
+                    );
+                }
+            }
+        }
     }
 }

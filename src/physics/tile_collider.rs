@@ -1,6 +1,6 @@
 use crate::assets::levels::Kind;
 use crate::assets::TILE_SIZE;
-use crate::entity::sprite::SpriteEntity;
+use crate::entity::animation::AnimationEntity;
 use crate::physics::matrix::Matrix;
 use crate::physics::tile_resolver::{TileData, TileResolver};
 use std::cell::RefCell;
@@ -20,7 +20,7 @@ impl TileCollider {
         self.resolver.clone()
     }
 
-    pub fn check_x(&self, entity: Rc<RefCell<SpriteEntity>>) {
+    pub fn check_x(&self, entity: Rc<RefCell<AnimationEntity>>) {
         let (dx, _dy) = entity.borrow().velocity();
         if dx == 0.0 {
             return;
@@ -59,7 +59,7 @@ impl TileCollider {
         }
     }
 
-    pub fn check_y(&self, entity: Rc<RefCell<SpriteEntity>>, dt: f64) {
+    pub fn check_y(&self, entity: Rc<RefCell<AnimationEntity>>, dt: f64) {
         let (_dx, dy) = entity.borrow().velocity();
         if dy == 0.0 {
             return;

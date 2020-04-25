@@ -1,26 +1,29 @@
+use crate::assets::animations::AnimationName;
 use crate::assets::levels::LevelDefinition;
 use crate::assets::sprites::SpriteSheet;
 use crate::camera::Camera;
-use crate::entity::sprite::SpriteEntity;
+use crate::entity::animation::AnimationEntity;
 use crate::entity::Updatable;
+use crate::layers::animation::AnimationLayer;
 use crate::layers::backgrounds::BackgroundsLayer;
 use crate::layers::camera::CameraLayer;
 use crate::layers::collision::CollisionLayer;
-use crate::layers::sprite::SpriteLayer;
 use crate::layers::{Compositor, Drawable};
 use crate::physics::gravity_force::GravityForce;
 use crate::physics::size::Size;
 use crate::physics::tile_collider::TileCollider;
 use core::cell::RefCell;
+use std::cell::Cell;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use web_sys::CanvasRenderingContext2d;
 
 pub struct Level {
     compositor: Compositor,
-    entities: Vec<Rc<RefCell<SpriteEntity>>>,
+    entities: Vec<Rc<RefCell<AnimationEntity>>>,
     tile_collider: Rc<TileCollider>,
     gravity: GravityForce,
+    distance: Rc<Cell<f64>>,
 }
 
 impl Level {
@@ -33,11 +36,16 @@ impl Level {
 
         let tiles = Rc::new(RefCell::new(tiles));
         let tile_collider = Rc::new(TileCollider::new(tiles.clone()));
+        let distance = Rc::new(Cell::new(0.));
 
         let mut compositor = Compositor::default();
 
-        let bg_layer =
-            BackgroundsLayer::new(tiles.clone(), bg_sprites, tile_collider.resolver().clone());
+        let bg_layer = BackgroundsLayer::new(
+            tiles.clone(),
+            bg_sprites,
+            tile_collider.resolver().clone(),
+            distance.clone(),
+        );
         compositor.add_layer(Rc::new(RefCell::new(bg_layer)));
 
         let camera_layer = CameraLayer::new(camera);
@@ -48,6 +56,7 @@ impl Level {
             entities,
             tile_collider,
             gravity,
+            distance,
         };
         Ok(result)
     }
@@ -58,8 +67,9 @@ impl Level {
 
     pub fn add_entity(
         &mut self,
-        entity: Rc<RefCell<SpriteEntity>>,
+        entity: Rc<RefCell<AnimationEntity>>,
         sprites: Rc<SpriteSheet>,
+        animation: AnimationName,
         size: Size,
         show_collision: bool,
     ) {
@@ -71,7 +81,7 @@ impl Level {
         }
 
         //
-        let layer = SpriteLayer::new(entity.clone(), sprites, size);
+        let layer = AnimationLayer::new(entity.clone(), sprites, animation, size);
         self.compositor.add_layer(Rc::new(RefCell::new(layer)));
     }
 }
@@ -84,6 +94,8 @@ impl Drawable for Level {
 
 impl Updatable for Level {
     fn update(&mut self, dt: f64) {
+        self.distance.set(self.distance.get() + 1000. * dt);
+
         for entity in self.entities.iter() {
             // log(&format!("Before upd> {:?}", entity.borrow()));
             entity.borrow_mut().update(dt);

@@ -1,3 +1,4 @@
+use crate::assets::animations::AnimationName;
 use crate::assets::sprites::{Sprite, SpriteSheet};
 use crate::assets::TILE_SIZE;
 use crate::physics::matrix::Matrix;
@@ -66,6 +67,7 @@ pub struct Background {
     tile: Sprite,
     #[serde(alias = "type")]
     kind: Option<Kind>,
+    animation: Option<AnimationName>,
     ranges: Vec<Vec<u32>>,
 }
 
@@ -75,6 +77,9 @@ impl Background {
     }
     pub fn kind(&self) -> Option<Kind> {
         self.kind
+    }
+    pub fn animation(&self) -> Option<AnimationName> {
+        self.animation
     }
     pub fn ranges(&self) -> Vec<Ranges> {
         self.ranges.iter().map(|v| Ranges::new(v)).collect()
@@ -120,6 +125,7 @@ impl LevelDefinition {
                         let data = TileData::new(
                             bg.tile(),
                             bg.kind(),
+                            bg.animation(),
                             top,
                             left + TILE_SIZE as f64,
                             top + TILE_SIZE as f64,

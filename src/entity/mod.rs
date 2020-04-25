@@ -1,5 +1,6 @@
 use crate::entity::traits::EntityTrait;
 
+pub mod animation;
 pub mod sprite;
 pub mod traits;
 

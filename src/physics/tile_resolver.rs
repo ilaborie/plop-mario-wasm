@@ -1,3 +1,4 @@
+use crate::assets::animations::AnimationName;
 use crate::assets::levels::Kind;
 use crate::assets::sprites::Sprite;
 use crate::physics::matrix::Matrix;
@@ -10,6 +11,7 @@ use std::rc::Rc;
 pub struct TileData {
     pub(crate) sprite: Sprite,
     pub(crate) tile: Option<Kind>,
+    pub(crate) animation: Option<AnimationName>,
     pub(crate) top: f64,
     pub(crate) right: f64,
     pub(crate) bottom: f64,
@@ -20,6 +22,7 @@ impl TileData {
     pub fn new(
         sprite: Sprite,
         tile: Option<Kind>,
+        animation: Option<AnimationName>,
         top: f64,
         right: f64,
         bottom: f64,
@@ -28,6 +31,7 @@ impl TileData {
         Self {
             sprite,
             tile,
+            animation,
             left,
             top,
             right,

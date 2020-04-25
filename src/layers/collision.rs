@@ -1,5 +1,5 @@
 use crate::camera::Camera;
-use crate::entity::sprite::SpriteEntity;
+use crate::entity::animation::AnimationEntity;
 use crate::layers::Drawable;
 use crate::level::Level;
 use crate::physics::tile_resolver::TileResolver;
@@ -9,12 +9,12 @@ use wasm_bindgen::JsValue;
 use web_sys::CanvasRenderingContext2d;
 
 pub struct CollisionLayer {
-    player: Rc<RefCell<SpriteEntity>>,
+    player: Rc<RefCell<AnimationEntity>>,
     resolver: Rc<TileResolver>,
 }
 
 impl CollisionLayer {
-    pub(crate) fn new(level: &Level, player: Rc<RefCell<SpriteEntity>>) -> Self {
+    pub(crate) fn new(level: &Level, player: Rc<RefCell<AnimationEntity>>) -> Self {
         let resolver = level.tiles_collider().resolver();
         Self { resolver, player }
     }

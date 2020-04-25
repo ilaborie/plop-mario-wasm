@@ -1,7 +1,9 @@
+use std::cell::RefCell;
 use std::f64;
+use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement, Window};
+use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlImageElement, Window};
 
 #[wasm_bindgen]
 extern "C" {
@@ -20,34 +22,34 @@ pub fn set_panic_hook() {
     console_error_panic_hook::set_once();
 }
 
-pub(crate) fn window() -> Window {
+pub fn window() -> Window {
     web_sys::window().expect("no global `window` exists")
 }
 
-pub(crate) fn document() -> Document {
+pub fn document() -> Document {
     window()
         .document()
         .expect("should have a document on window")
 }
 
-pub(crate) fn request_animation_frame(update: &Closure<dyn FnMut()>) {
+pub fn request_animation_frame(update: &Closure<dyn FnMut()>) {
     window()
         .request_animation_frame(update.as_ref().unchecked_ref())
         .expect("should register `requestAnimationFrame` OK");
 }
 
-pub(crate) fn body() -> web_sys::HtmlElement {
+pub fn body() -> web_sys::HtmlElement {
     document().body().expect("document should have a body")
 }
 
-pub(crate) fn time() -> f64 {
+pub fn time() -> f64 {
     window()
         .performance()
         .expect("window should have a performance")
         .now()
 }
 
-pub(crate) fn canvas(width: u32, height: u32) -> HtmlCanvasElement {
+pub fn canvas(width: u32, height: u32) -> HtmlCanvasElement {
     let canvas = document()
         .create_element("canvas")
         .unwrap()
@@ -58,7 +60,7 @@ pub(crate) fn canvas(width: u32, height: u32) -> HtmlCanvasElement {
     canvas
 }
 
-pub(crate) fn context_2d(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
+pub fn context_2d(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
     canvas
         .get_context("2d")
         .unwrap()
@@ -67,7 +69,7 @@ pub(crate) fn context_2d(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d
         .unwrap()
 }
 
-pub(crate) fn create_buffer<T>(width: u32, height: u32, closure: T) -> HtmlCanvasElement
+pub fn create_buffer<T>(width: u32, height: u32, closure: T) -> HtmlCanvasElement
 where
     T: FnOnce(CanvasRenderingContext2d) -> (),
 {
@@ -75,4 +77,33 @@ where
     let context = context_2d(&buffer);
     closure(context);
     buffer
+}
+
+pub fn create_image_buffer(
+    image: Rc<RefCell<HtmlImageElement>>,
+    x: f64,
+    y: f64,
+    width: u32,
+    height: u32,
+    mirror: bool,
+) -> HtmlCanvasElement {
+    create_buffer(width, height, |context| {
+        if mirror {
+            context.scale(-1., 1.).unwrap();
+            context.translate(-(width as f64), 0.).unwrap();
+        }
+        context
+            .draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+                &image.borrow(),
+                x as f64,
+                y as f64,
+                width as f64,
+                height as f64,
+                0.0,
+                0.0,
+                width as f64,
+                height as f64,
+            )
+            .unwrap()
+    })
 }
