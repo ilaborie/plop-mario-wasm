@@ -47,12 +47,12 @@ impl Jumping {
         self.engage_time -= dt;
     }
     pub fn is_jumping(&self) -> bool {
-        self.engage_time > 0.
+        !self.ready
     }
 
-    pub fn clear_ready(&mut self) {
-        self.ready = false;
-    }
+    // pub fn clear_ready(&mut self) {
+    //     self.ready = false;
+    // }
     pub fn set_ready(&mut self) {
         self.ready = true;
     }

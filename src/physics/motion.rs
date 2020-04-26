@@ -1,6 +1,6 @@
 use crate::assets::config::MotionDefault;
 
-#[derive(Serialize, Deserialize, Hash, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Hash, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Direction {
     Left,
     Stop,

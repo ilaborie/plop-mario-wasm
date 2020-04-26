@@ -9,13 +9,14 @@ use std::fmt::Display;
 use std::rc::Rc;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
 
-#[derive(Serialize, Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AnimationName {
     Mario,
     Chance,
+    Coin,
 }
 
-#[derive(Serialize, Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Frame {
     Idle,
     Break,
@@ -28,6 +29,10 @@ pub enum Frame {
     Chance1,
     Chance2,
     Chance3,
+    // Coin
+    Coin1,
+    Coin2,
+    Coin3,
 }
 
 impl Display for Frame {
@@ -36,7 +41,7 @@ impl Display for Frame {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Deserialize, Clone, Copy, Debug)]
 struct Rectangle {
     x: u32,
     y: u32,
@@ -44,13 +49,13 @@ struct Rectangle {
     height: u32,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 struct FrameDefinition {
     frame: Frame,
     rect: Rectangle,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub(in crate::assets) struct AnimationDefinition {
     pub(crate) name: AnimationName,
     #[serde(alias = "speedRatio")]

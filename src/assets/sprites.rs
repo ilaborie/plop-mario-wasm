@@ -14,7 +14,7 @@ use wasm_bindgen::__rt::core::cell::RefCell;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement, Request, Response};
 
-#[derive(Serialize, Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Sprite {
     // Tiles
     #[serde(alias = "ground")]
@@ -23,10 +23,41 @@ pub enum Sprite {
     Sky,
     #[serde(alias = "chance")]
     Chance,
+    #[serde(alias = "coin")]
+    Coin,
     #[serde(alias = "bricks")]
     Bricks,
     #[serde(alias = "chocolate")]
     Chocolate,
+    // Pipes
+    #[serde(alias = "pipe-insert-vert-left")]
+    PipeCapLeft,
+    #[serde(alias = "pipe-insert-vert-right")]
+    PipeCapRight,
+    #[serde(alias = "pipe-vert-left")]
+    PipeLeft,
+    #[serde(alias = "pipe-vert-right")]
+    PipeRight,
+    // Cloud
+    #[serde(alias = "cloud-1-1")]
+    Cloud11,
+    #[serde(alias = "cloud-1-2")]
+    Cloud12,
+    #[serde(alias = "cloud-1-3")]
+    Cloud13,
+    #[serde(alias = "cloud-2-1")]
+    Cloud21,
+    #[serde(alias = "cloud-2-2")]
+    Cloud22,
+    #[serde(alias = "cloud-2-3")]
+    Cloud23,
+    // Cannon
+    #[serde(alias = "canon-1")]
+    Cannon1,
+    #[serde(alias = "canon-2")]
+    Cannon2,
+    #[serde(alias = "canon-3")]
+    Cannon3,
 }
 
 impl Display for Sprite {
@@ -37,12 +68,22 @@ impl Display for Sprite {
             Sprite::Chance => "🍀",
             Sprite::Bricks => "🔳",
             Sprite::Chocolate => "🟤",
+            Sprite::PipeCapLeft | Sprite::PipeCapRight => "🟢",
+            Sprite::PipeLeft | Sprite::PipeRight => "🟩",
+            Sprite::Cannon1 | Sprite::Cannon2 | Sprite::Cannon3 => "💣",
+            Sprite::Cloud11
+            | Sprite::Cloud12
+            | Sprite::Cloud13
+            | Sprite::Cloud21
+            | Sprite::Cloud22
+            | Sprite::Cloud23 => "☁️",
+            Sprite::Coin => "💰",
         };
         write!(f, "{}", s)
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 struct SpriteDefinition {
     tile: Sprite,
     x: u32,
@@ -51,7 +92,7 @@ struct SpriteDefinition {
     height: Option<u32>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 struct SpriteSheetDefinition {
     image: String,
     width: Option<u32>,
@@ -99,7 +140,7 @@ impl SpriteSheet {
         // Sprites
         for sprite_def in definition.sprites.iter() {
             let w = sprite_def.width.unwrap_or(width);
-            let h = sprite_def.width.unwrap_or(height);
+            let h = sprite_def.height.unwrap_or(height);
             result.define(sprite_def.tile, sprite_def.x, sprite_def.y, w, h);
         }
 

@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::KeyboardEvent;
 
-#[derive(Serialize, Deserialize, Hash, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Hash, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Action {
     MoveRight,
     MoveLeft,

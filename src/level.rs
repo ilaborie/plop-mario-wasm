@@ -33,23 +33,27 @@ impl Level {
         camera: Rc<RefCell<Camera>>,
     ) -> Result<Self, JsValue> {
         let level_def = LevelDefinition::load(level).await?;
-        let (tiles, bg_sprites, gravity) = level_def.build().await?;
+        let (backgrounds_matrix, collision_matrix, bg_sprites, gravity) = level_def.build().await?;
+
         let gravity = GravityForce::new(gravity.unwrap_or(default_gravity));
         let entities = vec![];
 
-        let tiles = Rc::new(RefCell::new(tiles));
-        let tile_collider = Rc::new(TileCollider::new(tiles.clone()));
+        let collision = Rc::new(RefCell::new(collision_matrix));
+        let tile_collider = Rc::new(TileCollider::new(collision.clone()));
         let distance = Rc::new(Cell::new(0.));
 
         let mut compositor = Compositor::default();
 
-        let bg_layer = BackgroundsLayer::new(
-            tiles.clone(),
-            bg_sprites,
-            tile_collider.resolver().clone(),
-            distance.clone(),
-        );
-        compositor.add_layer(Rc::new(RefCell::new(bg_layer)));
+        let bg_sprites = Rc::new(bg_sprites);
+        for background_matrix in backgrounds_matrix {
+            let bg_layer = BackgroundsLayer::new(
+                background_matrix,
+                bg_sprites.clone(),
+                tile_collider.resolver().clone(),
+                distance.clone(),
+            );
+            compositor.add_layer(Rc::new(RefCell::new(bg_layer)));
+        }
 
         let camera_layer = CameraLayer::new(camera);
         compositor.add_layer(Rc::new(RefCell::new(camera_layer)));

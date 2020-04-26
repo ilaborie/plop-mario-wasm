@@ -8,7 +8,7 @@ use wasm_bindgen::__rt::std::collections::HashMap;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
-#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+#[derive(Deserialize, Copy, Clone, Debug)]
 pub struct JumpingDefault {
     pub duration: f64,
     pub velocity: f64,
@@ -18,7 +18,7 @@ pub struct JumpingDefault {
     pub speed_boost: f64,
 }
 
-#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+#[derive(Deserialize, Copy, Clone, Debug)]
 pub struct MotionDefault {
     pub direction: Direction,
     #[serde(alias = "acceleration")]
@@ -29,14 +29,14 @@ pub struct MotionDefault {
     pub drag_factor: f64,
 }
 
-#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+#[derive(Deserialize, Copy, Clone, Debug)]
 pub struct PhysicsDefault {
     pub jumping: JumpingDefault,
     pub motion: MotionDefault,
     pub gravity: f64,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct Configuration {
     keymap: HashMap<String, Action>,
     pub view: Size,

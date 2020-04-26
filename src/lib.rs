@@ -44,7 +44,7 @@ pub async fn run() -> Result<(), JsValue> {
     let context = context_2d(&can);
 
     // System
-    let mut sys = System::create(config, "lvl_1-1", "mario").await?;
+    let mut sys = System::create(config, "1-1", "mario").await?;
     sys.register_keyboard();
     // sys.register_mouse(&can);
 

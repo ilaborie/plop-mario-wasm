@@ -3,6 +3,7 @@ pub mod jumping;
 pub mod matrix;
 pub mod motion;
 pub mod position;
+pub mod rectangle;
 pub mod size;
 pub mod tile_collider;
 pub mod tile_resolver;
