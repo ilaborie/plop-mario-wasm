@@ -1,6 +1,6 @@
 use crate::assets::animations::AnimationName;
 use crate::entity::traits::EntityTrait;
-use crate::entity::{Entity, Updatable};
+use crate::entity::{Entity, ObstructionSide, Updatable};
 use crate::physics::jumping::Jumping;
 use crate::physics::motion::{Direction, Motion};
 use crate::physics::position::Position;
@@ -29,11 +29,11 @@ impl AnimationEntity {
         let velocity = Rc::new(RefCell::new(Velocity::new()));
         let size = Rc::new(RefCell::new(size));
         let jumping = Rc::new(RefCell::new(jumping));
-        let go = Rc::new(RefCell::new(go));
+        let motion = Rc::new(RefCell::new(go));
 
         entity
             .traits
-            .push(EntityTrait::go(velocity.clone(), go.clone()));
+            .push(EntityTrait::go(velocity.clone(), motion.clone()));
 
         entity
             .traits
@@ -46,10 +46,13 @@ impl AnimationEntity {
             velocity,
             jumping,
             size,
-            motion: go,
+            motion,
         }
     }
 
+    pub fn is_jumping(&self) -> bool {
+        self.jumping.borrow().is_jumping()
+    }
     pub fn jump_start(&mut self) {
         self.jumping.borrow_mut().start();
     }
@@ -58,10 +61,21 @@ impl AnimationEntity {
     }
 
     pub fn start_move(&mut self, direction: Direction) {
-        self.motion.borrow_mut().move_to(direction);
+        let is_jumping = self.is_jumping();
+        self.motion.borrow_mut().move_to(direction, is_jumping);
     }
-    pub fn stop_move(&mut self) {
-        self.motion.borrow_mut().stop();
+    pub fn stop_move(&mut self, direction: Direction) {
+        let is_jumping = self.is_jumping();
+        self.motion.borrow_mut().stop(direction, is_jumping);
+    }
+    pub fn start_run(&mut self) {
+        self.motion.borrow_mut().start_run();
+    }
+    pub fn stop_run(&mut self) {
+        self.motion.borrow_mut().stop_run();
+    }
+    pub fn obstruct(&mut self, side: ObstructionSide) {
+        self.entity.obstruct(side);
     }
 
     pub fn set_x(&mut self, x: f64) {

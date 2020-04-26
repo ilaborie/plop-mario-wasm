@@ -1,3 +1,4 @@
+use crate::assets::config::Configuration;
 use crate::assets::TILE_SIZE;
 use crate::entity::Updatable;
 use crate::system::System;
@@ -31,15 +32,21 @@ pub async fn run() -> Result<(), JsValue> {
     console_log!("Starting...");
     set_panic_hook();
 
+    // Config
+    let config = Configuration::load().await?;
+
     // Canvas
-    let can = canvas(TILE_SIZE * 20, TILE_SIZE * 14);
+    let can = canvas(
+        TILE_SIZE * config.view.width,
+        TILE_SIZE * config.view.height,
+    );
     body().append_child(&can)?;
     let context = context_2d(&can);
 
     // System
-    let mut sys = System::create("lvl_1-1", "mario").await?;
+    let mut sys = System::create(config, "lvl_1-1", "mario").await?;
     sys.register_keyboard();
-    sys.register_mouse(&can);
+    // sys.register_mouse(&can);
 
     // Timer
     let delta_time = 1.0 / 60.0;

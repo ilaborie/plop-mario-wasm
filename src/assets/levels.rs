@@ -2,6 +2,7 @@ use crate::assets::animations::AnimationName;
 use crate::assets::sprites::{Sprite, SpriteSheet};
 use crate::assets::TILE_SIZE;
 use crate::physics::matrix::Matrix;
+use crate::physics::size::Size;
 use crate::physics::tile_resolver::TileData;
 use crate::utils::window;
 use core::ops::Range;
@@ -91,6 +92,7 @@ pub struct LevelDefinition {
     #[serde(alias = "spriteSheet")]
     sprite_sheet: String,
     backgrounds: Vec<Background>,
+    gravity: Option<f64>,
 }
 
 impl LevelDefinition {
@@ -110,16 +112,28 @@ impl LevelDefinition {
         Ok(level)
     }
 
-    pub async fn build(&self) -> Result<(Matrix<TileData>, SpriteSheet), JsValue> {
-        let mut tiles = Matrix::new();
-        // let mut width: u32 = 0;
-        // let mut height: u32 = 0;
+    pub async fn build(&self) -> Result<(Matrix<TileData>, SpriteSheet, Option<f64>), JsValue> {
+        // Size
+        let mut width: u32 = 0;
+        let mut height: u32 = 0;
         for bg in self.backgrounds.iter() {
-            // log(&format!("bg {}", bg.tile()).to_string());
             for range in bg.ranges() {
                 for x in range.x() {
                     for y in range.y() {
-                        // log(&format!("({},{}) {}", x, y, bg.tile()).to_string());
+                        width = width.max(x);
+                        height = height.max(y);
+                    }
+                }
+            }
+        }
+        let size = Size::new(width + 1, height + 1);
+
+        // Matrix
+        let mut tiles = Matrix::new(size);
+        for bg in self.backgrounds.iter() {
+            for range in bg.ranges() {
+                for x in range.x() {
+                    for y in range.y() {
                         let left = (x * TILE_SIZE) as f64;
                         let top = (y * TILE_SIZE) as f64;
                         let data = TileData::new(
@@ -132,15 +146,12 @@ impl LevelDefinition {
                             left,
                         );
                         tiles.set(x as usize, y as usize, data);
-                        // width = width.max(x);
-                        // height = height.max(y);
                     }
                 }
             }
         }
-        // let size = Size::new(width, height);
 
         let sprite_sheet = SpriteSheet::load(self.sprite_sheet.as_str()).await?;
-        Ok((tiles, sprite_sheet))
+        Ok((tiles, sprite_sheet, self.gravity))
     }
 }

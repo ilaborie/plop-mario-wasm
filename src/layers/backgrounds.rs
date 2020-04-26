@@ -70,26 +70,29 @@ impl Drawable for BackgroundsLayer {
         let draw_to = draw_from + draw_width as usize;
         let range = draw_from..=draw_to;
 
+        // Update static tiles
         self.redraw(range.clone());
 
+        // Draw buffer
         context
             .draw_image_with_html_canvas_element(&self.buffer, -cam_x % TILE_SIZE as f64, -cam_y)
             .unwrap();
 
-        // Animations
-        let dist = self.distance.get();
+        // Draw Animations
+        let distance = self.distance.get();
+        let direction = Direction::Right;
         for (x, y, data) in self.tiles.borrow().iter() {
             if let Some(animation) = data.animation {
                 if range.contains(&x) {
                     let ax = (x - *range.start()) * self.sprites.width() as usize;
                     let ay = y * self.sprites.height() as usize;
-                    self.sprites.draw_animation(
+                    self.sprites.draw_tile_animation(
                         &self.buffer_context,
                         animation,
                         ax as f64,
                         ay as f64,
-                        Direction::Right,
-                        dist,
+                        distance,
+                        direction,
                     );
                 }
             }

@@ -1,5 +1,5 @@
 {
-  "image": "assets/images/overworld.png",
+  "image": "assets/images/world.png",
   "sprites":[
     { "tile": "ground", "x": 0, "y": 0 },
     { "tile": "bricks", "x": 32, "y": 0 },
@@ -11,31 +11,12 @@
     {
       "name": "Chance",
       "speedRatio": 100,
-      "idle": {
-        "frame": "Chance1",
-        "rect": { "x": 384, "y": 0, "width": 16, "height": 16}
-      },
-      "frames": [
-        {
-          "frame": "Chance1",
-          "rect": { "x": 384, "y": 0, "width": 16, "height": 16}
-        },
-        {
-          "frame": "Chance1",
-          "rect": { "x": 384, "y": 0, "width": 16, "height": 16}
-        },
-        {
-          "frame": "Chance2",
-          "rect": { "x": 400, "y": 0, "width": 16, "height": 16}
-        },
-        {
-          "frame": "Chance3",
-          "rect": { "x": 416, "y": 0, "width": 16, "height": 16}
-        },
-        {
-          "frame": "Chance2",
-          "rect": { "x": 400, "y": 0, "width": 16, "height": 16}
-        }
+      "idle": "Chance1",
+      "frames": [ "Chance1", "Chance1", "Chance2", "Chance3", "Chance2"],
+      "sprites": [
+        { "frame": "Chance1", "rect": { "x": 384, "y": 0, "width": 16, "height": 16} },
+        { "frame": "Chance2", "rect": { "x": 400, "y": 0, "width": 16, "height": 16} },
+        { "frame": "Chance3", "rect": { "x": 416, "y": 0, "width": 16, "height": 16} }
       ]
     }
   ]

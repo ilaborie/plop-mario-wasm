@@ -1,5 +1,6 @@
 use crate::assets::animations::{Animation, AnimationDefinition, AnimationName};
 use crate::assets::{load_image, TILE_SIZE};
+use crate::entity::animation::AnimationEntity;
 use crate::physics::motion::Direction;
 use crate::utils::{create_image_buffer, log, window};
 use core::fmt;
@@ -136,17 +137,30 @@ impl SpriteSheet {
         self.sprites.insert(sprite, buffer);
     }
 
-    pub fn draw_animation(
+    pub fn draw_tile_animation(
         &self,
         context: &CanvasRenderingContext2d,
         animation: AnimationName,
         x: f64,
         y: f64,
-        direction: Direction,
         distance: f64,
+        direction: Direction,
     ) {
         let anim = self.animations.get(&animation).unwrap();
-        anim.draw_frame(context, x, y, direction, distance);
+        let frame = anim.frame(distance);
+        anim.draw_frame(context, x, y, frame, direction);
+    }
+    pub fn draw_entity_animation(
+        &self,
+        context: &CanvasRenderingContext2d,
+        animation: AnimationName,
+        x: f64,
+        y: f64,
+        entity: Rc<RefCell<AnimationEntity>>,
+    ) {
+        let anim = self.animations.get(&animation).unwrap();
+        let frame = anim.entity_frame(entity.clone());
+        anim.draw_frame(context, x, y, frame, entity.borrow().direction());
     }
 
     fn draw_image(&self, context: &CanvasRenderingContext2d, sprite: &Sprite, x: f64, y: f64) {

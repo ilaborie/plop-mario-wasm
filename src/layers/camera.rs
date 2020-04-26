@@ -20,6 +20,7 @@ impl Drawable for CameraLayer {
         let (x, y) = self.camera.borrow().position();
         let (cam_x, cam_y) = camera.borrow().position();
 
+        // Draw Debug camera
         let width = self.camera.borrow().width();
         let height = self.camera.borrow().height();
         context.set_stroke_style(&JsValue::from("purple"));

@@ -27,11 +27,14 @@ pub struct Level {
 }
 
 impl Level {
-    pub async fn load(level: &str, camera: Rc<RefCell<Camera>>) -> Result<Self, JsValue> {
-        let gravity = GravityForce::new(4000.0);
-
+    pub async fn load(
+        level: &str,
+        default_gravity: f64,
+        camera: Rc<RefCell<Camera>>,
+    ) -> Result<Self, JsValue> {
         let level_def = LevelDefinition::load(level).await?;
-        let (tiles, bg_sprites) = level_def.build().await?;
+        let (tiles, bg_sprites, gravity) = level_def.build().await?;
+        let gravity = GravityForce::new(gravity.unwrap_or(default_gravity));
         let entities = vec![];
 
         let tiles = Rc::new(RefCell::new(tiles));

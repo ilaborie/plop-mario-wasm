@@ -43,15 +43,21 @@ impl Drawable for AnimationLayer {
     fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>) {
         let (cam_x, cam_y) = camera.borrow().position();
         let (x, y) = self.entity.borrow().position();
+        // log(&format!("{:?}", self.entity.borrow().to_string()));
 
-        self.buffer_context
-            .clear_rect(0., 0., self.size.width as f64, self.size.height as f64);
         // Draw entity to buffer
-        let dir = self.entity.borrow().direction();
-        let dist = self.entity.borrow().distance();
-        self.sprites
-            .draw_animation(&self.buffer_context, self.animation, 0., 0., dir, dist);
+        let Size { width, height } = self.size;
+        self.buffer_context
+            .clear_rect(0., 0., width as f64, height as f64);
+        self.sprites.draw_entity_animation(
+            &self.buffer_context,
+            self.animation,
+            0.,
+            0.,
+            self.entity.clone(),
+        );
 
+        // Draw buffer
         context
             .draw_image_with_html_canvas_element(&self.buffer, x - cam_x, y - cam_y)
             .unwrap();

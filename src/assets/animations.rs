@@ -1,3 +1,4 @@
+use crate::entity::animation::AnimationEntity;
 use crate::physics::motion::Direction;
 use crate::utils::create_image_buffer;
 use core::fmt;
@@ -17,6 +18,8 @@ pub enum AnimationName {
 #[derive(Serialize, Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Frame {
     Idle,
+    Break,
+    Jump,
     // Runs
     Run1,
     Run2,
@@ -48,40 +51,38 @@ struct FrameDefinition {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct AnimationDefinition {
+pub(in crate::assets) struct AnimationDefinition {
     pub(crate) name: AnimationName,
     #[serde(alias = "speedRatio")]
     speed_ratio: f64,
-    idle: FrameDefinition,
-    frames: Vec<FrameDefinition>,
+    idle: Frame,
+    stop: Option<Frame>,
+    jump: Option<Frame>,
+    frames: Vec<Frame>,
+    sprites: Vec<FrameDefinition>,
 }
 
 pub struct Animation {
     image: Rc<RefCell<HtmlImageElement>>,
     frames: HashMap<(Frame, Direction), HtmlCanvasElement>,
     idle: Frame,
+    stop: Option<Frame>,
+    jump: Option<Frame>,
     speed: f64,
     key_frames: Vec<Frame>,
 }
 
 impl Animation {
-    pub(crate) fn build(
+    pub(in crate::assets) fn build(
         definition: &AnimationDefinition,
         image: Rc<RefCell<HtmlImageElement>>,
     ) -> Animation {
-        let idle = definition.idle.frame;
-        let speed_ratio = definition.speed_ratio;
-        let key_frames = definition.frames.iter().map(|fd| fd.frame).collect();
-
-        let mut result = Animation::new(image.clone(), idle, speed_ratio, key_frames);
+        let mut result = Animation::new(image.clone(), definition);
 
         // Define all sprites
         for d in [Direction::Left, Direction::Stop, Direction::Right].iter() {
-            let r = definition.idle.rect;
-            result.define(definition.idle.frame, *d, r.x, r.y, r.width, r.height);
-            for frame_def in definition.frames.iter() {
+            for frame_def in definition.sprites.iter() {
                 let r = frame_def.rect;
-
                 result.define(frame_def.frame, *d, r.x, r.y, r.width, r.height);
             }
         }
@@ -89,17 +90,20 @@ impl Animation {
         result
     }
 
-    fn new(
-        image: Rc<RefCell<HtmlImageElement>>,
-        idle: Frame,
-        speed: f64,
-        key_frames: Vec<Frame>,
-    ) -> Self {
+    fn new(image: Rc<RefCell<HtmlImageElement>>, definition: &AnimationDefinition) -> Self {
         let frames = HashMap::new();
+        let idle = definition.idle;
+        let stop = definition.stop;
+        let jump = definition.jump;
+        let speed = definition.speed_ratio;
+        let key_frames = definition.frames.clone();
+
         Self {
             image,
             frames,
             idle,
+            stop,
+            jump,
             speed,
             key_frames,
         }
@@ -126,24 +130,39 @@ impl Animation {
         self.frames.insert((frame, direction), buffer);
     }
 
-    fn route_frame(&self, distance: f64) -> Frame {
-        if distance == 0. {
-            self.idle
+    pub(in crate::assets) fn frame(&self, distance: f64) -> Frame {
+        let index = (distance.round() / self.speed) as usize % self.key_frames.len();
+        self.key_frames[index]
+    }
+
+    pub(in crate::assets) fn entity_frame(&self, entity: Rc<RefCell<AnimationEntity>>) -> Frame {
+        if self.jump.is_some() && entity.borrow().is_jumping() {
+            return self.jump.unwrap();
+        }
+        let distance = entity.borrow().distance();
+        if distance > 0. {
+            let (dx, _dy) = entity.borrow().velocity();
+            let dir = entity.borrow().direction();
+            if self.stop.is_some()
+                && ((dx > 0. && dir == Direction::Left) || (dx < 0. && dir == Direction::Right))
+            {
+                self.stop.unwrap()
+            } else {
+                self.frame(distance)
+            }
         } else {
-            let index = (distance.round() / self.speed) as usize % self.key_frames.len();
-            self.key_frames[index]
+            self.idle
         }
     }
 
-    pub(crate) fn draw_frame(
+    pub(in crate::assets) fn draw_frame(
         &self,
         context: &CanvasRenderingContext2d,
         x: f64,
         y: f64,
+        frame: Frame,
         direction: Direction,
-        distance: f64,
     ) {
-        let frame = self.route_frame(distance);
         let buffer = self.frames.get(&(frame, direction)).unwrap();
         context
             .draw_image_with_html_canvas_element(&buffer, x as f64, y as f64)

@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Default)]
+#[derive(Serialize, Deserialize, Clone, Copy, Default, Debug)]
 pub struct Size {
     pub(crate) width: u32,
     pub(crate) height: u32,

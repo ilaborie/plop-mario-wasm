@@ -17,6 +17,9 @@ impl Velocity {
     pub fn set_dx(&mut self, dx: f64) {
         self.dx = dx;
     }
+    pub fn incr_dx(&mut self, dx: f64) {
+        self.dx += dx;
+    }
 
     pub fn dy(&self) -> f64 {
         self.dy
@@ -25,6 +28,6 @@ impl Velocity {
         self.dy = dy;
     }
     pub fn incr_dy(&mut self, dy: f64) {
-        self.dy = dy;
+        self.dy += dy;
     }
 }

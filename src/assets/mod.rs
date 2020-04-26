@@ -5,6 +5,7 @@ use wasm_bindgen::JsValue;
 use web_sys::HtmlImageElement;
 
 pub mod animations;
+pub mod config;
 pub mod levels;
 pub mod sprites;
 

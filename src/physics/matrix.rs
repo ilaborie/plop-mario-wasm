@@ -1,33 +1,49 @@
-use std::collections::HashMap;
+use crate::physics::size::Size;
 
 pub struct Matrix<T> {
-    grid: HashMap<usize, HashMap<usize, T>>,
+    grid: Vec<Vec<Option<T>>>,
+    size: Size,
 }
 
 impl<T: Clone> Matrix<T> {
-    pub fn new() -> Self {
-        let grid = HashMap::new();
-        Self { grid }
-    }
-
-    pub fn set(&mut self, x: usize, y: usize, elt: T) {
-        if !self.grid.contains_key(&x) {
-            self.grid.insert(x, HashMap::default());
+    pub fn new(size: Size) -> Self {
+        let mut grid: Vec<Vec<Option<T>>> = vec![];
+        for _i in 0..size.width {
+            grid.push(vec![None; size.height as usize]);
         }
-        let col = self.grid.get_mut(&x).unwrap();
-
-        // log(&format!("Set ({}, {}) = {}", x, y, elt).to_string());
-        *col.entry(y).or_insert(elt.clone()) = elt.clone();
+        Self { grid, size }
     }
 
     pub fn get(&self, x: usize, y: usize) -> Option<&T> {
-        self.grid.get(&x).and_then(|row| row.get(&y))
+        if x <= self.size.width as usize && y <= self.size.height as usize {
+            self.grid[x][y].as_ref()
+        } else {
+            None
+        }
+    }
+
+    pub fn set(&mut self, x: usize, y: usize, elt: T) {
+        if x < self.size.width as usize && y < self.size.height as usize {
+            self.grid[x][y] = Some(elt);
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn reset(&mut self, x: usize, y: usize) {
+        if x < self.size.width as usize && y < self.size.height as usize {
+            self.grid[x][y] = None;
+        }
     }
 
     pub fn iter(&self) -> Vec<(usize, usize, &T)> {
-        self.grid
-            .iter()
-            .flat_map(|(&x, columns)| columns.iter().map(move |(&y, elt)| (x, y, elt)))
-            .collect()
+        let mut result = vec![];
+        for (x, column) in self.grid.iter().enumerate() {
+            for (y, cell) in column.iter().enumerate() {
+                if let Some(elt) = cell {
+                    result.push((x, y, elt));
+                }
+            }
+        }
+        result
     }
 }

@@ -1,15 +1,32 @@
 {
+  "keymap": {
+    "KeyA": "MoveLeft",
+    "ArrowLeft": "MoveLeft",
+    "KeyD": "MoveRight",
+    "ArrowRight": "MoveRight",
+    "Space": "Jump",
+    "KeyP": "Jump",
+    "KeyW": "Jump",
+    "KeyO": "Run",
+    "ShiftLeft": "Run"
+  },
   "view": {
-    "width": 20,
+    "width": 17,
     "height": 14
   },
-  "jumping": {
-    "duration": 0.25,
-    "velocity": 12000
-  },
-  "motion": {
-    "direction": "Right",
-    "speed": 8000
-  },
-  "gravity": 4000
+  "physics": {
+    "jumping": {
+      "duration": 0.15,
+      "velocity": 3600,
+      "gracePeriod": 0.2,
+      "speedBoost": 0.6
+    },
+    "motion": {
+      "direction": "Right",
+      "acceleration": 200,
+      "deceleration": 5,
+      "dragFactor": 0.25
+    },
+    "gravity": 1500
+  }
 }
