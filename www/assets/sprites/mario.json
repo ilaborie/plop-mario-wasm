@@ -1,20 +1,42 @@
 {
-  "image": "assets/images/characters.gif",
-  "sprites": [],
-  "animations": [{
-    "name": "Mario",
-    "speedRatio": 12,
-    "idle": "Idle",
-    "stop": "Break",
-    "jump": "Jump",
-    "frames": ["Run1","Run2","Run3"],
-    "sprites": [
-      { "frame": "Idle", "rect": { "x": 276, "y": 44, "width": 16, "height": 16} },
-      { "frame": "Run1", "rect": { "x": 290, "y": 44, "width": 16, "height": 16} },
-      { "frame": "Run2", "rect": { "x": 304, "y": 44, "width": 16, "height": 16} },
-      { "frame": "Run3", "rect": { "x": 321, "y": 44, "width": 16, "height": 16} },
-      { "frame": "Break", "rect": { "x": 337, "y": 44, "width": 16, "height": 16} },
-      { "frame": "Jump", "rect": { "x": 355, "y": 44, "width": 16, "height": 16} }
+    "imageURL": "/assets/images/characters.gif",
+
+    "frames": [
+        {
+            "name": "idle",
+            "rect": [276, 44, 16, 16]
+        },
+        {
+            "name": "run-1",
+            "rect": [290, 44, 16, 16]
+        },
+        {
+            "name": "run-2",
+            "rect": [304, 43, 16, 16]
+        },
+        {
+            "name": "run-3",
+            "rect": [321, 44, 16, 16]
+        },
+        {
+            "name": "break",
+            "rect": [337, 44, 16, 16]
+        },
+        {
+            "name": "jump",
+            "rect": [355, 44, 16, 16]
+        }
+    ],
+
+    "animations": [
+        {
+            "name": "run",
+            "frameLen": 15,
+            "frames": [
+                "run-1",
+                "run-2",
+                "run-3"
+            ]
+        }
     ]
-  }]
 }

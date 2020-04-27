@@ -2,12 +2,10 @@ use crate::camera::Camera;
 use std::cell::RefCell;
 use std::rc::Rc;
 use web_sys::CanvasRenderingContext2d;
-
-pub mod animation;
 pub mod backgrounds;
 pub mod camera;
 pub mod collision;
-pub mod sprite;
+pub mod entity;
 
 pub trait Drawable {
     fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>);

@@ -1,3 +1,5 @@
+use crate::assets::sprites::Rectangle;
+use crate::physics::size::Size;
 use std::cell::RefCell;
 use std::f64;
 use std::rc::Rc;
@@ -49,7 +51,8 @@ pub fn time() -> f64 {
         .now()
 }
 
-pub fn canvas(width: u32, height: u32) -> HtmlCanvasElement {
+pub fn canvas(size: Size) -> HtmlCanvasElement {
+    let Size { width, height } = size;
     let canvas = document()
         .create_element("canvas")
         .unwrap()
@@ -69,11 +72,11 @@ pub fn context_2d(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
         .unwrap()
 }
 
-pub fn create_buffer<T>(width: u32, height: u32, closure: T) -> HtmlCanvasElement
+pub fn create_buffer<T>(size: Size, closure: T) -> HtmlCanvasElement
 where
     T: FnOnce(CanvasRenderingContext2d) -> (),
 {
-    let buffer = canvas(width, height);
+    let buffer = canvas(size);
     let context = context_2d(&buffer);
     closure(context);
     buffer
@@ -81,13 +84,17 @@ where
 
 pub fn create_image_buffer(
     image: Rc<RefCell<HtmlImageElement>>,
-    x: f64,
-    y: f64,
-    width: u32,
-    height: u32,
+    rect: &Rectangle,
     mirror: bool,
 ) -> HtmlCanvasElement {
-    create_buffer(width, height, |context| {
+    let &Rectangle {
+        x,
+        y,
+        width,
+        height,
+    } = rect;
+    let size = Size::new(width, height);
+    create_buffer(size, |context| {
         if mirror {
             context.scale(-1., 1.).unwrap();
             context.translate(-(width as f64), 0.).unwrap();

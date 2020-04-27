@@ -26,15 +26,16 @@ pub struct BackgroundsLayer {
 
 impl BackgroundsLayer {
     pub(crate) fn new(
+        view: Size,
         tiles: Matrix<TileData>,
         sprites: Rc<SpriteSheet>,
         revolver: Rc<TileResolver>,
         distance: Rc<Cell<f64>>,
     ) -> Self {
-        let width = 17 * TILE_SIZE;
-        let height = 15 * TILE_SIZE;
+        let width = (view.width + 1) * TILE_SIZE; // FIXME hide camera buffer
+        let height = view.height * TILE_SIZE;
         let size = Size::new(width, height);
-        let buffer = canvas(width, height);
+        let buffer = canvas(size);
         let buffer_context = context_2d(&buffer);
         let range = 0..=0;
 
@@ -58,7 +59,7 @@ impl BackgroundsLayer {
                 if range.contains(&x) {
                     self.sprites.draw_tile(
                         &self.buffer_context,
-                        &data.sprite,
+                        data.sprite,
                         (x - *range.start()) as f64,
                         y as f64,
                     );
@@ -88,11 +89,12 @@ impl Drawable for BackgroundsLayer {
         // Draw Animations
         let distance = self.distance.get();
         let direction = Direction::Right;
+        let tile_size = self.sprites.tile_size();
         for (x, y, data) in self.tiles.iter() {
             if let Some(animation) = data.animation {
                 if range.contains(&x) {
-                    let ax = (x - *range.start()) * self.sprites.width() as usize;
-                    let ay = y * self.sprites.height() as usize;
+                    let ax = (x - *range.start()) * tile_size.width as usize;
+                    let ay = y * tile_size.height as usize;
                     self.sprites.draw_tile_animation(
                         &self.buffer_context,
                         animation,

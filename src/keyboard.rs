@@ -1,5 +1,5 @@
 use crate::assets::config::Configuration;
-use crate::entity::animation::AnimationEntity;
+use crate::entity::player::PlayerEntity;
 use crate::physics::motion::Direction::{Left, Right};
 use crate::utils::window;
 use std::cell::RefCell;
@@ -41,10 +41,10 @@ pub struct Keyboard {
 }
 
 impl Keyboard {
-    pub fn register(&mut self, config: Configuration, player: Rc<RefCell<AnimationEntity>>) {
+    pub fn register(&mut self, config: Configuration, player: Rc<RefCell<PlayerEntity>>) {
         let key_states = self.key_states.clone();
-        let player = player.clone();
-        let config = config.clone();
+        // let player = player;
+        // let config = config;
 
         let closure = Closure::wrap(Box::new(move |event: KeyboardEvent| {
             let key = config.action(event.code());

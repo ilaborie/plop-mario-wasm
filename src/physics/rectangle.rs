@@ -6,7 +6,7 @@ use std::rc::Rc;
 use web_sys::CanvasRenderingContext2d;
 
 #[derive(Copy, Clone, Debug)]
-pub struct Rectangle {
+pub struct BoundingBox {
     top: f64,
     right: f64,
     bottom: f64,
@@ -14,8 +14,8 @@ pub struct Rectangle {
 }
 
 #[allow(dead_code)]
-impl Rectangle {
-    pub fn new(x: f64, y: f64, size: &Size) -> Self {
+impl BoundingBox {
+    pub fn new(x: f64, y: f64, size: Size) -> Self {
         let top = y;
         let left = x;
         let right = x + size.width as f64;
@@ -29,11 +29,18 @@ impl Rectangle {
         }
     }
 
-    pub fn translate(&mut self, dx: f64, dy: f64) {
-        self.top += dy;
-        self.bottom += dy;
-        self.left += dx;
-        self.right += dx;
+    pub fn translate(&self, dx: f64, dy: f64) -> BoundingBox {
+        let top = self.top + dy;
+        let bottom = self.bottom + dy;
+        let left = self.left + dx;
+        let right = self.right + dx;
+
+        Self {
+            top,
+            bottom,
+            left,
+            right,
+        }
     }
 
     pub fn size(&self) -> Size {
@@ -67,7 +74,7 @@ impl Rectangle {
     }
 }
 
-impl Drawable for Rectangle {
+impl Drawable for BoundingBox {
     fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>) {
         let (cam_x, cam_y) = camera.borrow().position();
 

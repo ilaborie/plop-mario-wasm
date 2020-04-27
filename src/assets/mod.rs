@@ -2,9 +2,9 @@ use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
+use wasm_bindgen_futures::JsFuture;
 use web_sys::HtmlImageElement;
 
-pub mod animations;
 pub mod config;
 pub mod levels;
 pub mod sprites;
@@ -19,7 +19,7 @@ extern "C" {
 
 async fn load_image(path: &str) -> Result<HtmlImageElement, JsValue> {
     let promise = loadImage(path);
-    let result = wasm_bindgen_futures::JsFuture::from(promise).await?;
+    let result = JsFuture::from(promise).await?;
     let image = result.dyn_into::<HtmlImageElement>().unwrap();
 
     Ok(image)

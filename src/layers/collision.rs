@@ -1,5 +1,5 @@
 use crate::camera::Camera;
-use crate::entity::animation::AnimationEntity;
+use crate::entity::DrawableEntity;
 use crate::layers::Drawable;
 use crate::level::Level;
 use crate::physics::tile_resolver::TileResolver;
@@ -9,14 +9,14 @@ use wasm_bindgen::JsValue;
 use web_sys::CanvasRenderingContext2d;
 
 pub struct CollisionLayer {
-    player: Rc<RefCell<AnimationEntity>>,
+    entity: Rc<RefCell<dyn DrawableEntity>>,
     resolver: Rc<TileResolver>,
 }
 
 impl CollisionLayer {
-    pub(crate) fn new(level: &Level, player: Rc<RefCell<AnimationEntity>>) -> Self {
+    pub(crate) fn new(level: &Level, entity: Rc<RefCell<dyn DrawableEntity>>) -> Self {
         let resolver = level.tiles_collider().resolver();
-        Self { resolver, player }
+        Self { resolver, entity }
     }
 }
 
@@ -25,17 +25,20 @@ impl Drawable for CollisionLayer {
         let (cam_x, cam_y) = camera.borrow().position();
 
         // Entity
-        let (x, y) = self.player.borrow().position();
-        let width = self.player.borrow().width();
-        let height = self.player.borrow().height();
+        let collision_box = self.entity.borrow().collision_box();
+        let x = collision_box.left();
+        let y = collision_box.top();
+        let width = collision_box.width();
+        let height = collision_box.height();
+
         context.set_stroke_style(&JsValue::from("red"));
         context.set_fill_style(&JsValue::from("rgba(128,0,0,.5"));
         context.set_line_width(0.5);
-        context.stroke_rect(x - cam_x, y - cam_y, width as f64, height as f64);
+        context.stroke_rect(x - cam_x, y - cam_y, width, height);
 
         // Boxes
-        let xs = self.resolver.to_index_range(x, x + width as f64);
-        let ys = self.resolver.to_index_range(y, y + height as f64);
+        let xs = self.resolver.to_index_range(x, x + width);
+        let ys = self.resolver.to_index_range(y, y + height);
         let tile_size = self.resolver.tile_size() as f64;
         for xi in xs {
             for yi in ys.clone() {

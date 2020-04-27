@@ -1,16 +1,16 @@
-use crate::assets::animations::AnimationName;
-use crate::assets::sprites::{Sprite, SpriteSheet};
+use crate::assets::sprites::{AnimationName, Sprite, SpriteSheet};
 use crate::assets::TILE_SIZE;
 use crate::physics::matrix::Matrix;
-use crate::physics::rectangle::Rectangle;
+use crate::physics::rectangle::BoundingBox;
 use crate::physics::size::Size;
 use crate::utils::window;
+use core::slice::Iter;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use wasm_bindgen::__rt::core::slice::Iter;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
+use crate::physics::position::Position;
 
 #[derive(Deserialize, Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Kind {
@@ -26,7 +26,7 @@ pub struct Ranges {
 }
 
 impl Ranges {
-    pub fn new(values: &Vec<u32>) -> Self {
+    pub fn new(values: &[u32]) -> Self {
         let (x0, x1, y0, y1) = match values.len() {
             2 => {
                 let x0 = values[0];
@@ -104,11 +104,11 @@ impl TilesDefinition {
             .collect()
     }
 
-    fn create_tile_data(&self, x: u32, y: u32, tile_size: &Size) -> TileData {
+    fn create_tile_data(&self, x: u32, y: u32, tile_size: Size) -> TileData {
         let sprite = self.sprite.unwrap();
         let left = (x * tile_size.width) as f64;
         let top = (y * tile_size.height) as f64;
-        let rectangle = Rectangle::new(top, left, &tile_size);
+        let rectangle = BoundingBox::new(top, left, tile_size);
         TileData::new(sprite, self.kind, self.animation, rectangle)
     }
 }
@@ -119,7 +119,7 @@ pub struct TileData {
     pub(crate) sprite: Sprite,
     pub(crate) tile: Option<Kind>,
     pub(crate) animation: Option<AnimationName>,
-    pub(crate) rectangle: Rectangle,
+    pub(crate) rectangle: BoundingBox,
 }
 
 impl TileData {
@@ -127,7 +127,7 @@ impl TileData {
         sprite: Sprite,
         tile: Option<Kind>,
         animation: Option<AnimationName>,
-        rectangle: Rectangle,
+        rectangle: BoundingBox,
     ) -> Self {
         Self {
             sprite,
@@ -138,7 +138,7 @@ impl TileData {
     }
 
     pub fn offset(&mut self, x: f64, y: f64) {
-        self.rectangle.translate(x, y)
+        self.rectangle = self.rectangle.translate(x, y);
     }
 }
 
@@ -150,6 +150,22 @@ struct LayerDefinition {
 }
 
 #[derive(Deserialize)]
+pub struct EntityDefinition {
+    name: String,
+    pos: Position,
+}
+
+impl EntityDefinition {
+
+    pub fn name(&self) -> &str{
+        self.name.as_str()
+    }
+    pub fn position(&self) -> Position{
+        self.pos.clone()
+    }
+}
+
+#[derive(Deserialize)]
 pub struct LevelDefinition {
     #[serde(alias = "spriteSheet")]
     sprite_sheet: String,
@@ -157,6 +173,7 @@ pub struct LevelDefinition {
     tile_size: Option<Size>,
     layers: Vec<LayerDefinition>,
     patterns: HashMap<String, PatternDefinition>,
+    entities: Vec<EntityDefinition>,
     gravity: Option<f64>,
 }
 
@@ -177,6 +194,10 @@ impl LevelDefinition {
         Ok(level)
     }
 
+    pub fn entities(&self) -> &[EntityDefinition] {
+        self.entities.as_slice()
+    }
+
     fn create_pattern_tiles_data(&self, pattern_definition: &PatternDefinition) -> Vec<XYTileData> {
         let mut result = vec![];
         for tiles in pattern_definition.tiles() {
@@ -192,12 +213,17 @@ impl LevelDefinition {
 
     fn get_tiles_data(&self, tiles: &TilesDefinition) -> Vec<XYTileData> {
         if tiles.sprite().is_some() {
-            let tile_size = self.tile_size.unwrap_or(Size::new(TILE_SIZE, TILE_SIZE));
-            let data = tiles.create_tile_data(0, 0, &tile_size);
+            let tile_size = self
+                .tile_size
+                .unwrap_or_else(|| Size::new(TILE_SIZE, TILE_SIZE));
+            let data = tiles.create_tile_data(0, 0, tile_size);
             vec![(0, 0, data)]
         } else if tiles.pattern().is_some() {
             let pattern_name = tiles.pattern().unwrap();
-            let pattern = self.patterns.get(&pattern_name).expect("Missing pattern");
+            let pattern = self
+                .patterns
+                .get(&pattern_name)
+                .unwrap_or_else(|| panic!("Missing pattern: {}", pattern_name));
             self.create_pattern_tiles_data(pattern)
         } else {
             panic!("Expected a tile or a pattern!")
@@ -239,11 +265,7 @@ impl LevelDefinition {
         }
         matrix
     }
-    fn create_collision_matrix(
-        &self,
-        size: Size,
-        data: &Vec<Vec<XYTileData>>,
-    ) -> Matrix<Rectangle> {
+    fn create_collision_matrix(&self, size: Size, data: &[Vec<XYTileData>]) -> Matrix<BoundingBox> {
         let mut matrix = Matrix::new(size);
         for v in data.iter() {
             for (x, y, data) in v.iter() {
@@ -262,7 +284,7 @@ impl LevelDefinition {
     ) -> Result<
         (
             Vec<Matrix<TileData>>,
-            Matrix<Rectangle>,
+            Matrix<BoundingBox>,
             SpriteSheet,
             Option<f64>,
         ),
@@ -274,7 +296,7 @@ impl LevelDefinition {
         let collision_matrix = self.create_collision_matrix(size, &all_tile_data);
         let mut backgrounds_matrix = vec![];
         for v in all_tile_data {
-            let background_matrix = self.create_background_matrix(size, v);
+            let background_matrix = self.create_background_matrix(size, v.to_vec());
             backgrounds_matrix.push(background_matrix);
         }
 

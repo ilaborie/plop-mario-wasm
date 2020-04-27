@@ -1,12 +1,14 @@
+use crate::assets::sprites::Rectangle;
 use crate::keyboard::Action;
 use crate::physics::motion::Direction;
 use crate::physics::size::Size;
 use crate::utils::window;
+use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use wasm_bindgen::__rt::std::collections::HashMap;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
+use crate::physics::position::Position;
 
 #[derive(Deserialize, Copy, Clone, Debug)]
 pub struct JumpingDefault {
@@ -30,17 +32,33 @@ pub struct MotionDefault {
 }
 
 #[derive(Deserialize, Copy, Clone, Debug)]
-pub struct PhysicsDefault {
+pub struct PlayerDefault {
+    pub position: Position,
+    pub size: Size,
     pub jumping: JumpingDefault,
     pub motion: MotionDefault,
-    pub gravity: f64,
+}
+
+#[derive(Deserialize, Copy, Clone, Debug)]
+pub struct MobsDefault {
+    pub speed: f64,
+    pub size: Size,
+    pub bbox: Option<Rectangle>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
+pub struct DevConfiguration {
+    #[serde(alias = "showCollision")]
+    pub(crate) show_collision: bool,
+}
+#[derive(Deserialize, Clone, Debug)]
 pub struct Configuration {
+    pub dev: DevConfiguration,
     keymap: HashMap<String, Action>,
     pub view: Size,
-    pub physics: PhysicsDefault,
+    pub gravity: f64,
+    pub player: PlayerDefault,
+    pub mobs: HashMap<String, MobsDefault>,
 }
 
 impl Configuration {
@@ -59,6 +77,6 @@ impl Configuration {
     }
 
     pub fn action(&self, key_code: String) -> Option<Action> {
-        self.keymap.get(&key_code).map(|&action| action)
+        self.keymap.get(&key_code).copied()
     }
 }

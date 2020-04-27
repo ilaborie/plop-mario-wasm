@@ -7,4 +7,3 @@ pub mod rectangle;
 pub mod size;
 pub mod tile_collider;
 pub mod tile_resolver;
-pub mod velocity;

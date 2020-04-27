@@ -1,10 +1,23 @@
 use crate::assets::config::MotionDefault;
+use core::fmt;
+use core::fmt::Display;
+use core::fmt::Formatter;
 
 #[derive(Deserialize, Hash, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Direction {
     Left,
     Stop,
     Right,
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Direction::Left => write!(f, "⬅️"),
+            Direction::Stop => write!(f, "⏹"),
+            Direction::Right => write!(f, "➡️"),
+        }
+    }
 }
 
 #[derive(Clone, Copy)]

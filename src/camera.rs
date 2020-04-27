@@ -1,7 +1,7 @@
 use crate::physics::position::Position;
 use crate::physics::size::Size;
+use core::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::__rt::core::cell::RefCell;
 
 pub struct Camera {
     position: Rc<RefCell<Position>>,

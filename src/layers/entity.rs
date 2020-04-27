@@ -1,7 +1,6 @@
-use crate::assets::animations::AnimationName;
 use crate::assets::sprites::SpriteSheet;
 use crate::camera::Camera;
-use crate::entity::animation::AnimationEntity;
+use crate::entity::DrawableEntity;
 use crate::layers::Drawable;
 use crate::physics::size::Size;
 use crate::utils::{canvas, context_2d};
@@ -9,23 +8,17 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
-pub struct AnimationLayer {
+pub struct EntityLayer {
     buffer: HtmlCanvasElement,
     buffer_context: CanvasRenderingContext2d,
-    entity: Rc<RefCell<AnimationEntity>>,
-    sprites: Rc<SpriteSheet>,
-    animation: AnimationName,
-    size: Size,
+    entity: Rc<RefCell<dyn DrawableEntity>>,
+    sprites: SpriteSheet,
 }
 
-impl AnimationLayer {
-    pub fn new(
-        entity: Rc<RefCell<AnimationEntity>>,
-        sprites: Rc<SpriteSheet>,
-        animation: AnimationName,
-        size: Size,
-    ) -> Self {
-        let buffer = canvas(size.width, size.height);
+impl EntityLayer {
+    pub fn new(entity: Rc<RefCell<dyn DrawableEntity>>, sprites: SpriteSheet) -> Self {
+        let size = entity.borrow().size();
+        let buffer = canvas(size);
         let buffer_context = context_2d(&buffer);
 
         Self {
@@ -33,29 +26,24 @@ impl AnimationLayer {
             buffer_context,
             entity,
             sprites,
-            animation,
-            size,
         }
     }
 }
 
-impl Drawable for AnimationLayer {
+impl Drawable for EntityLayer {
     fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>) {
         let (cam_x, cam_y) = camera.borrow().position();
         let (x, y) = self.entity.borrow().position();
         // log(&format!("{:?}", self.entity.borrow().to_string()));
 
         // Draw entity to buffer
-        let Size { width, height } = self.size;
+        let Size { width, height } = self.entity.borrow().size();
         self.buffer_context
             .clear_rect(0., 0., width as f64, height as f64);
-        self.sprites.draw_entity_animation(
-            &self.buffer_context,
-            self.animation,
-            0.,
-            0.,
-            self.entity.clone(),
-        );
+
+        // Sprite or anim
+        let entity_display = self.entity.borrow().entity_display();
+        entity_display.draw(&self.buffer_context, 0., 0., &self.sprites);
 
         // Draw buffer
         context
