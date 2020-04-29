@@ -12,14 +12,14 @@
         },
         {
             "name": "flat",
-            "rect": [277, 43, 16, 16]
+            "rect": [277, 187, 16, 16]
         }
     ],
 
     "animations": [
         {
             "name": "walk",
-            "frameLen": 0.2,
+            "frameLen": 0.15,
             "frames": [
                 "walk-1",
                 "walk-2"

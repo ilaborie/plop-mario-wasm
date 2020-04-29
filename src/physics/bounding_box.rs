@@ -1,8 +1,6 @@
 use crate::camera::Camera;
 use crate::layers::Drawable;
-use crate::physics::size::Size;
-use std::cell::RefCell;
-use std::rc::Rc;
+use crate::physics::Size;
 use web_sys::CanvasRenderingContext2d;
 
 #[derive(Copy, Clone, Debug)]
@@ -72,11 +70,18 @@ impl BoundingBox {
     pub fn bottom(&self) -> f64 {
         self.bottom
     }
+
+    pub fn overlaps(&self, other: BoundingBox) -> bool {
+        self.bottom > other.top
+            && self.top < other.bottom
+            && self.left < other.right
+            && self.right > other.left
+    }
 }
 
 impl Drawable for BoundingBox {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>) {
-        let (cam_x, cam_y) = camera.borrow().position();
+    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
+        let (cam_x, cam_y) = camera.position();
 
         context.stroke_rect(
             self.left - cam_x,

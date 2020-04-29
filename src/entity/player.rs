@@ -1,24 +1,24 @@
 use crate::assets::config::PlayerDefault;
 use crate::assets::sprites::{AnimationName, Sprite};
+use crate::entity::entity_display::EntityDisplay;
+use crate::entity::entity_drawable::{DrawableEntity, TraitUpdater};
 use crate::entity::traits::go::Go;
 use crate::entity::traits::jump::Jump;
-use crate::entity::traits::EntityTrait;
-use crate::entity::{DrawableEntity, Entity, EntityDisplay, ObstructionSide};
-use crate::physics::jumping::Jumping;
-use crate::physics::motion::{Direction, Motion};
-use crate::physics::position::Position;
-use crate::physics::rectangle::BoundingBox;
-use crate::physics::size::Size;
+use crate::entity::traits::killable::Killable;
+use crate::entity::traits::stomper::Stomper;
+use crate::entity::{Entity, EntityFeature, Living};
+use crate::physics::bounding_box::BoundingBox;
+use crate::physics::{Direction, Position};
 use std::cell::RefCell;
 use std::rc::Rc;
 
 pub struct PlayerEntity {
-    // entity: Rc<RefCell<Entity>>,
-    entity: Entity,
-    jumping: Rc<RefCell<Jumping>>,
-    motion: Rc<RefCell<Motion>>,
-    go: Go,
-    jump: Jump,
+    entity: Rc<RefCell<Entity>>,
+    go: Rc<RefCell<Go>>,
+    jump: Rc<RefCell<Jump>>,
+    stomper: Rc<RefCell<Stomper>>,
+    killable: Rc<RefCell<Killable>>,
+    // player_controller: Rc<RefCell<PlayerController>>,
 }
 
 impl PlayerEntity {
@@ -28,111 +28,115 @@ impl PlayerEntity {
         let mut entity = Entity::new(String::from("Player"), bounding_box, size);
         entity.x = position.x();
         entity.y = position.y();
+        let entity = Rc::new(RefCell::new(entity));
 
         // Traits
-        let motion = Motion::new(param.motion);
-        let motion = Rc::new(RefCell::new(motion));
-        let go = Go::new(motion.clone());
+        let go = Rc::new(RefCell::new(Go::new(param.motion)));
+        let jump = Rc::new(RefCell::new(Jump::new(param.jumping)));
+        let stomper = Rc::new(RefCell::new(Stomper::new(param.stomp)));
+        let killable = Rc::default();
 
-        let jumping = Jumping::new(param.jumping);
-        let jumping = Rc::new(RefCell::new(jumping));
-        let jump = Jump::new(jumping.clone());
+        // Features
+        entity.borrow_mut().features.push(EntityFeature::Stomper);
+        entity.borrow_mut().features.push(EntityFeature::Player);
 
         Self {
             entity,
-            jumping,
-            motion,
             go,
             jump,
+            stomper,
+            killable,
         }
     }
 
-    fn is_jumping(&self) -> bool {
-        self.jumping.borrow().is_jumping()
-    }
     pub fn jump_start(&mut self) {
-        self.jumping.borrow_mut().start();
+        if self.entity.borrow().living != Living::Alive {
+            return;
+        }
+
+        self.jump.borrow_mut().start();
     }
     pub fn jump_cancel(&mut self) {
-        self.jumping.borrow_mut().cancel();
+        if self.entity.borrow().living != Living::Alive {
+            return;
+        }
+
+        self.jump.borrow_mut().cancel();
     }
     pub fn start_move(&mut self, direction: Direction) {
-        let is_jumping = self.is_jumping();
-        self.motion.borrow_mut().move_to(direction, is_jumping);
+        if self.entity.borrow().living != Living::Alive {
+            return;
+        }
+
+        self.go
+            .borrow_mut()
+            .move_to(direction, self.jump.borrow().is_jumping());
     }
     pub fn stop_move(&mut self, direction: Direction) {
-        let is_jumping = self.is_jumping();
-        self.motion.borrow_mut().stop(direction, is_jumping);
+        if self.entity.borrow().living != Living::Alive {
+            return;
+        }
+
+        self.go
+            .borrow_mut()
+            .stop(direction, self.jump.borrow().is_jumping());
     }
     pub fn start_run(&mut self) {
-        self.motion.borrow_mut().start_run();
+        if self.entity.borrow().living != Living::Alive {
+            return;
+        }
+
+        self.go.borrow_mut().start_run();
     }
     pub fn stop_run(&mut self) {
-        self.motion.borrow_mut().stop_run();
+        if self.entity.borrow().living != Living::Alive {
+            return;
+        }
+
+        self.go.borrow_mut().stop_run();
     }
 }
 
 impl DrawableEntity for PlayerEntity {
-    fn id(&self) -> &str {
-        self.entity.id.as_str()
+    fn id(&self) -> String {
+        self.entity.borrow().id.clone()
     }
+
+    fn entity(&self) -> Rc<RefCell<Entity>> {
+        self.entity.clone()
+    }
+
     fn entity_display(&self) -> EntityDisplay {
-        if self.is_jumping() {
-            return EntityDisplay::sprite(Sprite::Jump);
+        let name = AnimationName::Run;
+
+        if self.entity.borrow().living != Living::Alive {
+            return EntityDisplay::sprite(name, Sprite::Dead, self.go.borrow().direction());
         }
-        let distance = self.motion.borrow().distance;
+
+        if self.jump.borrow().is_jumping() {
+            return EntityDisplay::sprite(name, Sprite::Jump, self.go.borrow().direction());
+        }
+
+        let distance = self.go.borrow().distance();
         if distance > 0. {
-            let dx = self.entity.dx;
-            let direction = self.motion.borrow().direction;
+            let dx = self.entity.borrow().dx;
+            let direction = self.go.borrow().direction();
             if (dx > 0. && direction == Direction::Left)
                 || (dx < 0. && direction == Direction::Right)
             {
-                EntityDisplay::sprite(Sprite::Break)
+                EntityDisplay::sprite(name, Sprite::Break, self.go.borrow().direction())
             } else {
-                EntityDisplay::animation(AnimationName::Run, distance, direction)
+                EntityDisplay::animation(name, distance, direction)
             }
         } else {
-            EntityDisplay::sprite(Sprite::Idle)
+            EntityDisplay::sprite(name, Sprite::Idle, self.go.borrow().direction())
         }
     }
 
-    fn position(&self) -> (f64, f64) {
-        self.entity.position()
-    }
-
-    fn size(&self) -> Size {
-        self.entity.size()
-    }
-
-    fn collision_box(&self) -> BoundingBox {
-        self.entity.collision_box()
-    }
-    fn dx(&self) -> f64 {
-        self.entity.dx
-    }
-    fn dy(&self) -> f64 {
-        self.entity.dy
-    }
-    fn apply_velocity_x(&mut self, dt: f64) {
-        self.entity.apply_velocity_x(dt);
-    }
-
-    fn apply_velocity_y(&mut self, dt: f64) {
-        self.entity.apply_velocity_y(dt);
-    }
-
-    fn apply_gravity(&mut self, dt: f64) {
-        self.entity.apply_gravity(dt);
-    }
-
-    fn update(&mut self, dt: f64) {
-        self.go.update(&mut self.entity, dt);
-        self.jump.update(&mut self.entity, dt);
-        self.entity.update(dt); // lifetime
-    }
-
-    fn obstruct(&mut self, side: ObstructionSide, rect: &BoundingBox) {
-        self.go.obstruct(&mut self.entity, side, rect);
-        self.jump.obstruct(&mut self.entity, side, rect);
+    fn traits(&mut self, mut func: TraitUpdater) {
+        func(self.go.clone());
+        func(self.jump.clone());
+        func(self.killable.clone());
+        func(self.stomper.clone());
     }
 }

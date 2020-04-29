@@ -1,5 +1,5 @@
 use crate::assets::sprites::Rectangle;
-use crate::physics::size::Size;
+use crate::physics::Size;
 use std::cell::RefCell;
 use std::f64;
 use std::rc::Rc;

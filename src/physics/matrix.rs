@@ -1,4 +1,4 @@
-use crate::physics::size::Size;
+use crate::physics::Size;
 
 pub struct Matrix<T> {
     grid: Vec<Vec<Option<T>>>,

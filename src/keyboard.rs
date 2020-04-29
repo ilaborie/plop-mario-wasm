@@ -1,6 +1,6 @@
 use crate::assets::config::Configuration;
 use crate::entity::player::PlayerEntity;
-use crate::physics::motion::Direction::{Left, Right};
+use crate::physics::Direction::{Left, Right};
 use crate::utils::window;
 use std::cell::RefCell;
 use std::collections::HashMap;

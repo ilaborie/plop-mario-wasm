@@ -3,12 +3,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use web_sys::CanvasRenderingContext2d;
 pub mod backgrounds;
-pub mod camera;
 pub mod collision;
 pub mod entity;
 
 pub trait Drawable {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>);
+    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera);
 }
 
 #[derive(Default)]
@@ -23,9 +22,9 @@ impl Compositor {
 }
 
 impl Drawable for Compositor {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>) {
+    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
         for layer in self.layers.iter() {
-            layer.borrow_mut().draw(context, camera.clone());
+            layer.borrow_mut().draw(context, camera);
         }
     }
 }

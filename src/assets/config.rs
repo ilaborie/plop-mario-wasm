@@ -1,14 +1,12 @@
 use crate::assets::sprites::Rectangle;
 use crate::keyboard::Action;
-use crate::physics::motion::Direction;
-use crate::physics::size::Size;
+use crate::physics::{Direction, Position, Size};
 use crate::utils::window;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
-use crate::physics::position::Position;
 
 #[derive(Deserialize, Copy, Clone, Debug)]
 pub struct JumpingDefault {
@@ -37,6 +35,7 @@ pub struct PlayerDefault {
     pub size: Size,
     pub jumping: JumpingDefault,
     pub motion: MotionDefault,
+    pub stomp: f64,
 }
 
 #[derive(Deserialize, Copy, Clone, Debug)]

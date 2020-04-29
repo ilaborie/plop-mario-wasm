@@ -1,8 +1,9 @@
 use crate::assets::sprites::SpriteSheet;
 use crate::camera::Camera;
-use crate::entity::DrawableEntity;
+use crate::entity::entity_drawable::DrawableEntity;
+use crate::entity::Living;
 use crate::layers::Drawable;
-use crate::physics::size::Size;
+use crate::physics::Size;
 use crate::utils::{canvas, context_2d};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -31,10 +32,14 @@ impl EntityLayer {
 }
 
 impl Drawable for EntityLayer {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>) {
-        let (cam_x, cam_y) = camera.borrow().position();
+    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
+        let (cam_x, cam_y) = camera.position();
         let (x, y) = self.entity.borrow().position();
-        // log(&format!("{:?}", self.entity.borrow().to_string()));
+
+        // let id = self.entity.borrow().id();
+        // if id.starts_with("Player") {
+        //     log(&format!("{} at ({}, {})", id, x, y));
+        // }
 
         // Draw entity to buffer
         let Size { width, height } = self.entity.borrow().size();
@@ -42,8 +47,11 @@ impl Drawable for EntityLayer {
             .clear_rect(0., 0., width as f64, height as f64);
 
         // Sprite or anim
-        let entity_display = self.entity.borrow().entity_display();
-        entity_display.draw(&self.buffer_context, 0., 0., &self.sprites);
+        let removed = self.entity.borrow().living() == Living::NoExistence;
+        if !removed {
+            let entity_display = self.entity.borrow().entity_display();
+            entity_display.draw(&self.buffer_context, 0., 0., &self.sprites);
+        }
 
         // Draw buffer
         context

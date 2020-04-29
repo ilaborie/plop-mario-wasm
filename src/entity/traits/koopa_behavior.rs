@@ -1,0 +1,138 @@
+use crate::entity::traits::walk::Walk;
+use crate::entity::traits::EntityTrait;
+use crate::entity::Entity;
+use crate::utils::log;
+use core::cell::RefCell;
+use std::rc::Rc;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum KoopaState {
+    Walking,
+    Hiding,
+    Panic,
+}
+
+impl Default for KoopaState {
+    fn default() -> Self {
+        KoopaState::Walking
+    }
+}
+
+pub struct KoopaBehavior {
+    state: KoopaState,
+    walk: Rc<RefCell<Walk>>,
+    hide_time: f64,
+    hide_duration: f64,
+    walk_speed: f64,
+    panic_speed: f64,
+}
+
+impl KoopaBehavior {
+    pub fn new(walk: Rc<RefCell<Walk>>) -> Self {
+        let state = KoopaState::default();
+        let hide_time = 0.;
+        let hide_duration = 5.;
+        let walk_speed = 0.;
+        let panic_speed = 300.;
+        Self {
+            state,
+            walk,
+            hide_time,
+            hide_duration,
+            walk_speed,
+            panic_speed,
+        }
+    }
+
+    pub fn state(&self) -> KoopaState {
+        self.state
+    }
+    pub fn hide_time(&self) -> f64 {
+        self.hide_time
+    }
+
+    fn hide(&mut self, us: Rc<RefCell<Entity>>) {
+        log(&format!("{} hiding", us.borrow().id));
+        us.borrow_mut().dx = 0.;
+        self.walk.borrow_mut().disable();
+        if self.walk_speed == 0. {
+            self.walk_speed = self.walk.borrow().speed();
+        }
+        self.hide_time = 0.;
+        self.state = KoopaState::Hiding;
+    }
+
+    fn unhide(&mut self, us: Rc<RefCell<Entity>>) {
+        log(&format!("{} unhide", us.borrow().id));
+        self.walk.borrow_mut().enable();
+        self.walk.borrow_mut().set_speed(self.walk_speed);
+        self.state = KoopaState::Walking;
+    }
+
+    fn panic(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+        log(&format!("{} panic", us.borrow().id));
+        self.walk.borrow_mut().enable();
+        self.walk
+            .borrow_mut()
+            .set_speed(self.panic_speed * them.borrow().dx.signum());
+        self.state = KoopaState::Panic;
+    }
+
+    fn handle_stomp(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+        match self.state {
+            KoopaState::Walking => self.hide(us),
+            KoopaState::Hiding => {
+                us.borrow_mut().kill(them.borrow().id.as_str());
+                us.borrow_mut().dx = 100.;
+                us.borrow_mut().dy = -200.;
+                us.borrow_mut().can_collide = false;
+            }
+            KoopaState::Panic => {
+                self.hide(us);
+            }
+        };
+    }
+
+    fn handle_nudge(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+        log(&format!("{} in {:?} nudge", us.borrow().id, self.state));
+        match self.state {
+            KoopaState::Walking => {
+                // Killer
+                them.borrow_mut().kill(us.borrow().id.as_str());
+            }
+            KoopaState::Hiding => {
+                self.panic(us, them);
+            }
+            KoopaState::Panic => {
+                let travel_dir = us.borrow().dx.signum();
+                let delta = us.borrow().x - them.borrow().x;
+                let impact_dir = delta.signum();
+                if travel_dir != 0. && (travel_dir - impact_dir).abs() > 0. {
+                    // Killer
+                    them.borrow_mut().kill(us.borrow().id.as_str());
+                }
+            }
+        };
+    }
+}
+
+impl EntityTrait for KoopaBehavior {
+    fn update(&mut self, us: Rc<RefCell<Entity>>, dt: f64) {
+        if self.state == KoopaState::Hiding {
+            self.hide_time += dt;
+            if self.hide_time > self.hide_duration {
+                self.unhide(us);
+            }
+        }
+    }
+
+    fn collides(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+        if them.borrow().is_stomper() {
+            if them.borrow().dy > us.borrow().dy {
+                self.handle_stomp(us, them);
+            } else {
+                self.handle_nudge(us, them);
+            }
+        }
+    }
+}

@@ -20,8 +20,8 @@
   "gravity": 1500,
   "player": {
     "position": {
-      "x": 8,
-      "y": 0
+      "x": 68,
+      "y": 64
     },
     "size": {
       "width": 14,
@@ -38,7 +38,8 @@
       "acceleration": 200,
       "deceleration": 5,
       "dragFactor": 0.25
-    }
+    },
+    "stomp": 20000
   },
   "mobs": {
     "goomba": {
@@ -49,7 +50,7 @@
       }
     },
     "koopa": {
-      "speed": 35,
+      "speed": -35,
       "size": {
         "width": 16,
         "height": 24

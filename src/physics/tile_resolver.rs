@@ -1,5 +1,5 @@
+use crate::physics::bounding_box::BoundingBox;
 use crate::physics::matrix::Matrix;
-use crate::physics::rectangle::BoundingBox;
 use std::cell::RefCell;
 use std::ops::Range;
 use std::rc::Rc;

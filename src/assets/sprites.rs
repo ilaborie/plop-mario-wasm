@@ -1,6 +1,5 @@
 use crate::assets::{load_image, TILE_SIZE};
-use crate::physics::motion::Direction;
-use crate::physics::size::Size;
+use crate::physics::{Direction, Size};
 use crate::utils::{create_image_buffer, log, window};
 use core::cell::RefCell;
 use std::collections::HashMap;
@@ -16,6 +15,8 @@ pub enum AnimationName {
     Run,
     #[serde(alias = "walk")]
     Walk,
+    #[serde(alias = "wake")]
+    Wake,
     #[serde(alias = "chance")]
     Chance,
 }
@@ -33,16 +34,23 @@ pub enum Sprite {
     Run3,
     #[serde(alias = "break")]
     Break,
+    #[serde(alias = "dead")]
+    Dead,
     #[serde(alias = "jump")]
     Jump,
-    // Goomba
-    #[serde(alias = "flat")]
-    Flat,
     // Goomba, Koopa
     #[serde(alias = "walk-1")]
     Walk1,
     #[serde(alias = "walk-2")]
     Walk2,
+    // Goomba
+    #[serde(alias = "flat")]
+    Flat,
+    // Koopa
+    #[serde(alias = "hiding")]
+    Hiding,
+    #[serde(alias = "hiding-with-legs")]
+    HidingWithLegs,
     // Level
     #[serde(alias = "ground")]
     Ground,
@@ -227,7 +235,7 @@ impl Animation {
     ) {
         let buffer = self.frames.get(&(frame, direction)).unwrap_or_else(|| {
             panic!(
-                "[{:?}] Frame ({:?}{}) not found!",
+                "[{:?}] Frame ({:?}{:?}) not found!",
                 self.name, frame, direction
             )
         });
@@ -317,6 +325,22 @@ impl SpriteSheet {
             .get(&animation)
             .unwrap_or_else(|| panic!("[{}] Animation {:?} not found!", self.name, animation));
         let frame = anim.frame(distance);
+        anim.draw_frame(context, x, y, frame, direction);
+    }
+
+    pub fn draw_tile_animation_fixed(
+        &self,
+        context: &CanvasRenderingContext2d,
+        animation: AnimationName,
+        frame: Sprite,
+        x: f64,
+        y: f64,
+        direction: Direction,
+    ) {
+        let anim = self
+            .animations
+            .get(&animation)
+            .unwrap_or_else(|| panic!("[{}] Animation {:?} not found!", self.name, animation));
         anim.draw_frame(context, x, y, frame, direction);
     }
 

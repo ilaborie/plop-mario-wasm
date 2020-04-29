@@ -1,12 +1,43 @@
-use crate::assets::sprites::{AnimationName, Sprite, SpriteSheet};
-use crate::physics::motion::Direction;
-use crate::physics::rectangle::BoundingBox;
-use crate::physics::size::Size;
-use web_sys::CanvasRenderingContext2d;
+use crate::assets::config::MobsDefault;
+use crate::entity::entity_drawable::DrawableEntity;
+use crate::entity::goomba::GoombaEntity;
+use crate::entity::koopa::KoopaEntity;
+use crate::physics::bounding_box::BoundingBox;
+use crate::physics::{Position, Size};
+use crate::utils::log;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-pub mod mobs;
+pub mod entity_display;
+pub mod entity_drawable;
+pub mod goomba;
+pub mod koopa;
 pub mod player;
+pub mod player_env;
 pub mod traits;
+
+pub fn create_mobs(
+    id: String,
+    mobs: &str,
+    param: &MobsDefault,
+    position: Position,
+) -> Rc<RefCell<dyn DrawableEntity>> {
+    let bounding_box = param
+        .bbox
+        .map(|r| BoundingBox::new(r.x as f64, r.y as f64, r.size()))
+        .unwrap_or_else(|| BoundingBox::new(0., 0., param.size));
+
+    let mut entity = Entity::new(id, bounding_box, param.size);
+    entity.dx = param.speed;
+    entity.x = position.x();
+    entity.y = position.y();
+
+    match mobs {
+        "goomba" => Rc::new(RefCell::new(GoombaEntity::new(entity))),
+        "koopa" => Rc::new(RefCell::new(KoopaEntity::new(entity))),
+        _ => panic!("Mobs {} not found!", mobs),
+    }
+}
 
 #[derive(Hash, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ObstructionSide {
@@ -16,118 +47,88 @@ pub enum ObstructionSide {
     Left,
 }
 
-pub trait DrawableEntity {
-    fn id(&self) -> &str;
-    fn entity_display(&self) -> EntityDisplay;
-
-    fn position(&self) -> (f64, f64);
-    fn size(&self) -> Size;
-    fn collision_box(&self) -> BoundingBox;
-    fn dx(&self) -> f64;
-    fn dy(&self) -> f64;
-
-    fn apply_velocity_x(&mut self, dt: f64);
-    fn apply_velocity_y(&mut self, dt: f64);
-    fn apply_gravity(&mut self, dt: f64);
-
-    fn update(&mut self, dt: f64);
-    fn obstruct(&mut self, _side: ObstructionSide, rect: &BoundingBox);
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum EntityFeature {
+    Stomper,
+    Killable,
+    Player,
 }
 
-#[derive(Debug)]
-pub enum EntityDisplay {
-    DisplayAnimation {
-        name: AnimationName,
-        distance: f64,
-        direction: Direction,
-    },
-    DisplaySprite {
-        sprite: Sprite,
-    },
-}
-
-impl EntityDisplay {
-    fn animation(name: AnimationName, distance: f64, direction: Direction) -> EntityDisplay {
-        EntityDisplay::DisplayAnimation {
-            name,
-            distance,
-            direction,
-        }
-    }
-
-    fn sprite(sprite: Sprite) -> EntityDisplay {
-        EntityDisplay::DisplaySprite { sprite }
-    }
-
-    pub fn draw(&self, context: &CanvasRenderingContext2d, x: f64, y: f64, sprites: &SpriteSheet) {
-        match self {
-            EntityDisplay::DisplayAnimation {
-                name,
-                distance,
-                direction,
-            } => sprites.draw_tile_animation(context, *name, x, y, *distance, *direction),
-            EntityDisplay::DisplaySprite { sprite } => sprites.draw_tile(context, *sprite, x, y),
-        }
-    }
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Living {
+    Alive,
+    Dead,
+    NoExistence,
 }
 
 pub struct Entity {
-    #[allow(dead_code)]
     id: String,
 
     // Lifetimes
     lifetime: f64,
+    living: Living,
+    can_collide: bool,
 
     // Position
     x: f64,
     y: f64,
 
     // Velocity
-    dx: f64,
+    pub(crate) dx: f64,
     dy: f64,
 
     // Bounds & Size
     bounding_box: BoundingBox,
     size: Size,
+
+    // Features
+    features: Vec<EntityFeature>,
 }
 
 impl Entity {
     pub fn new(id: String, bounding_box: BoundingBox, size: Size) -> Self {
         let lifetime = 0.;
+        let living = Living::Alive;
         let x = 0.;
         let y = 0.;
         let dx = 0.;
         let dy = 0.;
+        let features = vec![];
+        let can_collide = true;
 
         Entity {
             id,
             lifetime,
+            living,
+            can_collide,
             x,
             y,
             dx,
             dy,
             bounding_box,
             size,
+            features,
         }
     }
+    // Lifetime
+    pub fn lifetime(&self) -> f64 {
+        self.lifetime
+    }
 
-    fn position(&self) -> (f64, f64) {
+    pub(crate) fn position(&self) -> (f64, f64) {
         (self.x, self.y)
     }
-    fn size(&self) -> Size {
+    pub(crate) fn size(&self) -> Size {
         self.size
     }
 
-    fn collision_box(&self) -> BoundingBox {
+    pub fn collision_box(&self) -> BoundingBox {
         self.bounding_box.translate(self.x, self.y)
     }
 
     // X, dX
-    fn next_x(&self, dt: f64) -> f64 {
-        self.x + self.dx * dt
-    }
     pub fn apply_velocity_x(&mut self, dt: f64) {
-        self.x = self.next_x(dt);
+        self.x += self.dx * dt
     }
     fn set_x(&mut self, x: f64, dx: f64) {
         self.x = x;
@@ -135,11 +136,8 @@ impl Entity {
     }
 
     // Y, dY
-    fn next_y(&self, dt: f64) -> f64 {
-        self.y + self.dy * dt
-    }
     pub fn apply_velocity_y(&mut self, dt: f64) {
-        self.y = self.next_y(dt);
+        self.y += self.dy * dt
     }
     fn set_y(&mut self, y: f64, dy: f64) {
         self.y = y;
@@ -155,5 +153,36 @@ impl Entity {
     pub fn update(&mut self, dt: f64) {
         // Update lifetime
         self.lifetime += dt;
+    }
+
+    // Features
+    pub fn living(&self) -> Living {
+        self.living
+    }
+    fn kill(&mut self, killer: &str) {
+        log(&format!("{} killed by {}", self.id, killer));
+        self.living = Living::Dead;
+        self.can_collide = false;
+        self.dx = 0.;
+        self.dy = 0.;
+    }
+    fn remove(&mut self) {
+        log(&format!("Remove {}", self.id));
+        self.living = Living::NoExistence;
+    }
+    fn revive(&mut self) {
+        log(&format!("ReSpawn {}", self.id));
+        self.can_collide = true;
+        self.living = Living::Alive;
+    }
+
+    fn is(&self, feature: EntityFeature) -> bool {
+        self.features.contains(&feature)
+    }
+    fn is_stomper(&self) -> bool {
+        self.is(EntityFeature::Stomper)
+    }
+    fn is_killable(&self) -> bool {
+        self.is(EntityFeature::Killable)
     }
 }

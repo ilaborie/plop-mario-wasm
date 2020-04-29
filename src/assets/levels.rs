@@ -1,8 +1,8 @@
 use crate::assets::sprites::{AnimationName, Sprite, SpriteSheet};
 use crate::assets::TILE_SIZE;
+use crate::physics::bounding_box::BoundingBox;
 use crate::physics::matrix::Matrix;
-use crate::physics::rectangle::BoundingBox;
-use crate::physics::size::Size;
+use crate::physics::{Position, Size};
 use crate::utils::window;
 use core::slice::Iter;
 use std::collections::HashMap;
@@ -10,7 +10,6 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
-use crate::physics::position::Position;
 
 #[derive(Deserialize, Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Kind {
@@ -156,12 +155,11 @@ pub struct EntityDefinition {
 }
 
 impl EntityDefinition {
-
-    pub fn name(&self) -> &str{
+    pub fn name(&self) -> &str {
         self.name.as_str()
     }
-    pub fn position(&self) -> Position{
-        self.pos.clone()
+    pub fn position(&self) -> Position {
+        self.pos
     }
 }
 
@@ -246,7 +244,7 @@ impl LevelDefinition {
         result
     }
 
-    fn compute_size(&self, data: &Vec<Vec<XYTileData>>) -> Size {
+    fn compute_size(&self, data: &[Vec<XYTileData>]) -> Size {
         let mut width: u32 = 0;
         let mut height: u32 = 0;
         for v in data.iter() {

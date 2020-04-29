@@ -1,5 +1,4 @@
-use crate::physics::position::Position;
-use crate::physics::size::Size;
+use crate::physics::{Position, Size};
 use core::cell::RefCell;
 use std::rc::Rc;
 
@@ -16,9 +15,6 @@ impl Camera {
 
     pub fn width(&self) -> u32 {
         self.size.width
-    }
-    pub fn height(&self) -> u32 {
-        self.size.height
     }
 
     pub fn position(&self) -> (f64, f64) {

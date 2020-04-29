@@ -1,5 +1,6 @@
 use crate::camera::Camera;
-use crate::entity::DrawableEntity;
+use crate::entity::entity_drawable::DrawableEntity;
+use crate::entity::Living;
 use crate::layers::Drawable;
 use crate::level::Level;
 use crate::physics::tile_resolver::TileResolver;
@@ -21,8 +22,12 @@ impl CollisionLayer {
 }
 
 impl Drawable for CollisionLayer {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: Rc<RefCell<Camera>>) {
-        let (cam_x, cam_y) = camera.borrow().position();
+    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
+        if self.entity.borrow().entity().borrow().living() != Living::Alive {
+            return;
+        }
+
+        let (cam_x, cam_y) = camera.position();
 
         // Entity
         let collision_box = self.entity.borrow().collision_box();
