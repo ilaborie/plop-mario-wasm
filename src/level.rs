@@ -5,6 +5,8 @@ use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::player::PlayerEntity;
 use crate::entity::player_env::PlayerEnv;
+use crate::entity::traits::physics::Physics;
+use crate::entity::traits::update;
 use crate::entity::{create_mobs, EntityFeature, Living};
 use crate::layers::backgrounds::BackgroundsLayer;
 use crate::layers::collision::CollisionLayer;
@@ -93,7 +95,8 @@ impl Level {
         position: Position,
     ) -> Result<Rc<RefCell<PlayerEntity>>, JsValue> {
         let player_sprites = SpriteSheet::load(player).await?;
-        let player_entity = PlayerEntity::new(position, &config.player);
+        let physics = Physics::new(self.gravity, self.tile_collider.clone());
+        let player_entity = PlayerEntity::new(position, &config.player, physics);
 
         let player = Rc::new(RefCell::new(player_entity));
         self.add_entity(player.clone(), player_sprites, config.dev.show_collision);
@@ -118,7 +121,8 @@ impl Level {
             .unwrap_or_else(|| panic!("No mobs configuration found for {}", mob));
         self.next_mob += 1;
         let id = format!("{} #{}", mob, self.next_mob);
-        let entity = create_mobs(id, mob, mobs_default, position);
+        let physics = Physics::new(self.gravity, self.tile_collider.clone());
+        let entity = create_mobs(id, mob, mobs_default, position, physics);
         self.add_entity(entity, sprites, config.dev.show_collision);
 
         Ok(())
@@ -135,7 +139,7 @@ impl Level {
         show_collision: bool,
     ) {
         self.entities.push(entity.clone());
-        self.entity_collider.add_entity(entity.clone());
+        self.entity_collider.add_entity(entity.borrow().entity());
 
         if show_collision {
             let collision = CollisionLayer::new(&self, entity.clone());
@@ -176,32 +180,27 @@ impl Level {
     }
 
     pub fn update(&mut self, dt: f64) {
+        self.entities_updates(dt);
+        self.entities_collision();
+        self.entities_tasks();
         self.distance.set(self.distance.get() + 1000. * dt);
+    }
 
+    fn entities_updates(&mut self, dt: f64) {
         for entity in self.entities.iter() {
-            entity.borrow_mut().update(dt);
-
-            // Position Y
-            entity.borrow_mut().apply_velocity_y(dt);
-            if entity.borrow().can_collide() {
-                self.tile_collider.check_y(entity.clone());
-            }
-
-            // Position X
-            entity.borrow_mut().apply_velocity_x(dt);
-            if entity.borrow().can_collide() {
-                self.tile_collider.check_x(entity.clone());
-            }
-
-            // Gravity
-            entity.borrow_mut().apply_gravity(self.gravity.g * dt);
+            update(entity.borrow().entity(), dt);
         }
+    }
 
-        // Entity collision
+    fn entities_collision(&mut self) {
         for entity in self.entities.iter() {
-            if entity.borrow().can_collide() {
-                self.entity_collider.check(entity.clone());
-            }
+            self.entity_collider.check(entity.borrow().entity());
+        }
+    }
+
+    fn entities_tasks(&mut self) {
+        for entity in self.entities.iter() {
+            entity.borrow().entity().borrow_mut().finalize();
         }
     }
 }

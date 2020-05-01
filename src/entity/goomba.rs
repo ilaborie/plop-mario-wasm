@@ -1,8 +1,10 @@
 use crate::assets::sprites::{AnimationName, Sprite};
 use crate::entity::entity_display::EntityDisplay;
-use crate::entity::entity_drawable::{DrawableEntity, TraitUpdater};
+use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::goomba_behavior::GoombaBehavior;
 use crate::entity::traits::killable::Killable;
+use crate::entity::traits::physics::Physics;
+use crate::entity::traits::solid::Solid;
 use crate::entity::traits::walk::Walk;
 use crate::entity::{Entity, EntityFeature, Living};
 use crate::physics::Direction;
@@ -11,31 +13,30 @@ use std::rc::Rc;
 
 pub struct GoombaEntity {
     entity: Rc<RefCell<Entity>>,
-    walk: Rc<RefCell<Walk>>,
-    behavior: Rc<RefCell<GoombaBehavior>>,
-    killable: Rc<RefCell<Killable>>,
 }
 
 impl GoombaEntity {
-    pub fn new(entity: Entity) -> Self {
-        let entity = Rc::new(RefCell::new(entity));
-
+    pub fn new(mut entity: Entity, physics: Physics) -> Self {
         // Traits
-        let walk = Walk::new(entity.borrow().dx);
+        let solid = Rc::new(RefCell::new(Solid::new()));
+        let walk = Walk::new(entity.dx);
         let walk = Rc::new(RefCell::new(walk));
         let behavior = GoombaBehavior::new(walk.clone());
         let behavior = Rc::new(RefCell::new(behavior));
-        let killable = Rc::default();
+        let killable = Rc::new(RefCell::new(Killable::new(solid.clone())));
+        let physics = Rc::new(RefCell::new(physics));
+
+        entity.traits.push(solid);
+        entity.traits.push(walk);
+        entity.traits.push(behavior);
+        entity.traits.push(killable);
+        entity.traits.push(physics);
 
         // Features
-        entity.borrow_mut().features.push(EntityFeature::Killable);
+        entity.features.push(EntityFeature::Killable);
 
-        Self {
-            entity,
-            walk,
-            behavior,
-            killable,
-        }
+        let entity = Rc::new(RefCell::new(entity));
+        Self { entity }
     }
 }
 
@@ -58,11 +59,5 @@ impl DrawableEntity for GoombaEntity {
         } else {
             EntityDisplay::animation(AnimationName::Walk, dist, direction)
         }
-    }
-
-    fn traits(&mut self, mut func: TraitUpdater) {
-        func(self.walk.clone());
-        func(self.behavior.clone());
-        func(self.killable.clone());
     }
 }

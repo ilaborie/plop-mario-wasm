@@ -1,6 +1,6 @@
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
-use crate::physics::bounding_box::BoundingBox;
+use crate::physics::bounding_box::BBox;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -29,6 +29,9 @@ impl Walk {
 }
 
 impl EntityTrait for Walk {
+    fn name(&self) -> &str {
+        "walk"
+    }
     fn update(&mut self, entity: Rc<RefCell<Entity>>, _dt: f64) {
         // Move X
         if self.enable {
@@ -36,26 +39,12 @@ impl EntityTrait for Walk {
         }
     }
 
-    fn obstruct(&mut self, entity: Rc<RefCell<Entity>>, side: ObstructionSide, rect: BoundingBox) {
+    fn obstruct(&mut self, _entity: Rc<RefCell<Entity>>, side: ObstructionSide, _rect: BBox) {
         match side {
-            ObstructionSide::Right => {
-                let x = rect.left() - entity.borrow().size.width as f64;
+            ObstructionSide::Right | ObstructionSide::Left => {
                 self.speed *= -1.;
-                entity.borrow_mut().x = x;
             }
-            ObstructionSide::Left => {
-                let x = rect.right();
-                self.speed *= -1.;
-                entity.borrow_mut().x = x;
-            }
-            ObstructionSide::Top => {
-                let y = rect.bottom();
-                entity.borrow_mut().set_y(y, 0.);
-            }
-            ObstructionSide::Bottom => {
-                let y = rect.top() - entity.borrow().size.height as f64;
-                entity.borrow_mut().set_y(y, 0.);
-            }
+            _ => {}
         }
     }
 }

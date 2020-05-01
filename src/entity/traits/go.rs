@@ -1,7 +1,7 @@
 use crate::assets::config::MotionDefault;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living, ObstructionSide};
-use crate::physics::bounding_box::BoundingBox;
+use crate::physics::bounding_box::BBox;
 use crate::physics::Direction;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -103,6 +103,10 @@ impl Go {
 }
 
 impl EntityTrait for Go {
+    fn name(&self) -> &str {
+        "go"
+    }
+
     fn update(&mut self, entity: Rc<RefCell<Entity>>, dt: f64) {
         if entity.borrow().living != Living::Alive {
             self.count = 0;
@@ -137,35 +141,15 @@ impl EntityTrait for Go {
         let drag = self.drag_factor / 1000. * dx * abs_dx;
         entity.borrow_mut().dx -= drag;
 
-        // log(&format!("dx {}",  dx).to_string());
         self.distance += dt * abs_dx;
     }
 
-    fn obstruct(&mut self, entity: Rc<RefCell<Entity>>, side: ObstructionSide, rect: BoundingBox) {
+    fn obstruct(&mut self, entity: Rc<RefCell<Entity>>, side: ObstructionSide, _rect: BBox) {
         if entity.borrow().living != Living::Alive {
             return;
         }
-
-        match side {
-            ObstructionSide::Right => {
-                let width = entity.borrow().size.width as f64;
-                let x = rect.left() - width;
-                entity.borrow_mut().set_x(x, 0.);
-            }
-            ObstructionSide::Left => {
-                let x = rect.right();
-                entity.borrow_mut().set_x(x, 0.);
-            }
-            ObstructionSide::Top => {
-                let y = rect.bottom();
-                entity.borrow_mut().set_y(y, 0.);
-            }
-            ObstructionSide::Bottom => {
-                let height = entity.borrow().size.height as f64;
-                let y = rect.top() - height;
-                self.heading = self.direction;
-                entity.borrow_mut().set_y(y, 0.);
-            }
+        if let ObstructionSide::Bottom = side {
+            self.heading = self.direction;
         }
     }
 }

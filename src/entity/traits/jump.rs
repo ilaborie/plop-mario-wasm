@@ -1,7 +1,7 @@
 use crate::assets::config::JumpingDefault;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
-use crate::physics::bounding_box::BoundingBox;
+use crate::physics::bounding_box::BBox;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -49,17 +49,18 @@ impl Jump {
     }
 
     pub(crate) fn start(&mut self) {
-        // log(&"Start Jump");
         self.request_time = self.grace_period;
     }
     pub(crate) fn cancel(&mut self) {
-        // log(&"Stop Jump");
         self.engage_time = 0.0;
         self.request_time = 0.0;
     }
 }
 
 impl EntityTrait for Jump {
+    fn name(&self) -> &str {
+        "jump"
+    }
     fn update(&mut self, entity: Rc<RefCell<Entity>>, dt: f64) {
         if self.request_time > 0. {
             self.engage(dt);
@@ -73,12 +74,7 @@ impl EntityTrait for Jump {
         }
     }
 
-    fn obstruct(
-        &mut self,
-        _entity: Rc<RefCell<Entity>>,
-        side: ObstructionSide,
-        _rect: BoundingBox,
-    ) {
+    fn obstruct(&mut self, _entity: Rc<RefCell<Entity>>, side: ObstructionSide, _rect: BBox) {
         match side {
             ObstructionSide::Bottom => {
                 self.ready = true;

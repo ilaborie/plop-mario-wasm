@@ -43,8 +43,6 @@ pub struct Keyboard {
 impl Keyboard {
     pub fn register(&mut self, config: Configuration, player: Rc<RefCell<PlayerEntity>>) {
         let key_states = self.key_states.clone();
-        // let player = player;
-        // let config = config;
 
         let closure = Closure::wrap(Box::new(move |event: KeyboardEvent| {
             let key = config.action(event.code());

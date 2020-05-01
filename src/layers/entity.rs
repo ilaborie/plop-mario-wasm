@@ -36,11 +36,6 @@ impl Drawable for EntityLayer {
         let (cam_x, cam_y) = camera.position();
         let (x, y) = self.entity.borrow().position();
 
-        // let id = self.entity.borrow().id();
-        // if id.starts_with("Player") {
-        //     log(&format!("{} at ({}, {})", id, x, y));
-        // }
-
         // Draw entity to buffer
         let Size { width, height } = self.entity.borrow().size();
         self.buffer_context

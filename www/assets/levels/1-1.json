@@ -260,6 +260,7 @@
                 },
                 {
                     "name": "chance",
+                    "animation": "chance",
                     "type": "ground",
                     "ranges": [
                         [2, 2],

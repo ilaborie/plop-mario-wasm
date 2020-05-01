@@ -57,7 +57,8 @@ pub async fn run() -> Result<(), JsValue> {
     let g = f.clone();
 
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        // if system.stopped() {
+        // if last_time > 1_000. { // FIXME Stop after 1s
+        //     log("Stop");
         //     let _ = f.borrow_mut().take();
         //     return;
         // }

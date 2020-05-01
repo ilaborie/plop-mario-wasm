@@ -1,6 +1,6 @@
 use crate::assets::sprites::{AnimationName, Sprite, SpriteSheet};
 use crate::assets::TILE_SIZE;
-use crate::physics::bounding_box::BoundingBox;
+use crate::physics::bounding_box::BBox;
 use crate::physics::matrix::Matrix;
 use crate::physics::{Position, Size};
 use crate::utils::window;
@@ -107,7 +107,7 @@ impl TilesDefinition {
         let sprite = self.sprite.unwrap();
         let left = (x * tile_size.width) as f64;
         let top = (y * tile_size.height) as f64;
-        let rectangle = BoundingBox::new(top, left, tile_size);
+        let rectangle = BBox::new(top, left, tile_size);
         TileData::new(sprite, self.kind, self.animation, rectangle)
     }
 }
@@ -118,7 +118,7 @@ pub struct TileData {
     pub(crate) sprite: Sprite,
     pub(crate) tile: Option<Kind>,
     pub(crate) animation: Option<AnimationName>,
-    pub(crate) rectangle: BoundingBox,
+    pub(crate) rectangle: BBox,
 }
 
 impl TileData {
@@ -126,7 +126,7 @@ impl TileData {
         sprite: Sprite,
         tile: Option<Kind>,
         animation: Option<AnimationName>,
-        rectangle: BoundingBox,
+        rectangle: BBox,
     ) -> Self {
         Self {
             sprite,
@@ -263,7 +263,7 @@ impl LevelDefinition {
         }
         matrix
     }
-    fn create_collision_matrix(&self, size: Size, data: &[Vec<XYTileData>]) -> Matrix<BoundingBox> {
+    fn create_collision_matrix(&self, size: Size, data: &[Vec<XYTileData>]) -> Matrix<BBox> {
         let mut matrix = Matrix::new(size);
         for v in data.iter() {
             for (x, y, data) in v.iter() {
@@ -282,7 +282,7 @@ impl LevelDefinition {
     ) -> Result<
         (
             Vec<Matrix<TileData>>,
-            Matrix<BoundingBox>,
+            Matrix<BBox>,
             SpriteSheet,
             Option<f64>,
         ),

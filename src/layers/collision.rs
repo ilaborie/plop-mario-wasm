@@ -30,7 +30,7 @@ impl Drawable for CollisionLayer {
         let (cam_x, cam_y) = camera.position();
 
         // Entity
-        let collision_box = self.entity.borrow().collision_box();
+        let collision_box = self.entity.borrow().entity().borrow().collision_box();
         let x = collision_box.left();
         let y = collision_box.top();
         let width = collision_box.width();

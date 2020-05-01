@@ -47,7 +47,6 @@ impl System {
 
     pub fn draw(&mut self, context: &CanvasRenderingContext2d) {
         self.level.draw(context, &self.camera);
-        //self.level.remove_entities();
     }
 
     pub fn update(&mut self, dt: f64) {

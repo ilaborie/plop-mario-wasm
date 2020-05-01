@@ -15,6 +15,9 @@ impl GoombaBehavior {
 }
 
 impl EntityTrait for GoombaBehavior {
+    fn name(&self) -> &str {
+        "goomba"
+    }
     fn collides(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
         if us.borrow().living != Living::Alive {
             return;
@@ -24,7 +27,6 @@ impl EntityTrait for GoombaBehavior {
                 // Dead
                 us.borrow_mut().kill(them.borrow().id.as_str());
                 self.walk.borrow_mut().disable();
-            // them.borrow_mut().bounce(us);
             } else {
                 // Kill
                 them.borrow_mut().kill(us.borrow().id.as_str());

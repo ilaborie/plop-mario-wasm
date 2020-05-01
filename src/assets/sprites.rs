@@ -234,9 +234,15 @@ impl Animation {
         direction: Direction,
     ) {
         let buffer = self.frames.get(&(frame, direction)).unwrap_or_else(|| {
+            let found: Vec<Sprite> = self
+                .frames
+                .keys()
+                .filter(|it| it.1 == direction)
+                .map(|t| t.0)
+                .collect();
             panic!(
-                "[{:?}] Frame ({:?}{:?}) not found!",
-                self.name, frame, direction
+                "[{:?}] Frame ({:?},{:?}) not found!, got {:?}",
+                self.name, frame, direction, found
             )
         });
         context
@@ -278,7 +284,24 @@ impl SpriteSheet {
         // Animations
         for animation_def in definition.animations.iter() {
             let mut animation = Animation::build(animation_def.name, animation_def, image.clone());
-            // Define all sprites
+            // Define tiles
+            for tile_def in definition.tiles.iter() {
+                if animation_def.frames.contains(&tile_def.name) {
+                    let (x, y) = tile_def.index;
+                    let x = x * tile_width;
+                    let y = y * tile_height;
+                    let width = tile_width;
+                    let height = tile_height;
+                    let rect = Rectangle {
+                        x,
+                        y,
+                        width,
+                        height,
+                    };
+                    animation.define(tile_def.name, Direction::Right, &rect);
+                }
+            }
+            // Define all frames
             for &d in [Direction::Left, Direction::Stop, Direction::Right].iter() {
                 for frame_def in definition.frames.iter() {
                     animation.define(frame_def.name, d, &frame_def.rect);

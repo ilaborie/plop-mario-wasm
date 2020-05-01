@@ -25,6 +25,9 @@ impl PlayerController {
 }
 
 impl EntityTrait for PlayerController {
+    fn name(&self) -> &str {
+        "player_controller"
+    }
     fn update(&mut self, _entity: Rc<RefCell<Entity>>, dt: f64) {
         if self.player.borrow().living == Living::NoExistence {
             self.removed_time += dt;

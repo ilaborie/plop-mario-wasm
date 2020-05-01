@@ -1,13 +1,15 @@
 use crate::assets::config::PlayerDefault;
 use crate::assets::sprites::{AnimationName, Sprite};
 use crate::entity::entity_display::EntityDisplay;
-use crate::entity::entity_drawable::{DrawableEntity, TraitUpdater};
+use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::go::Go;
 use crate::entity::traits::jump::Jump;
 use crate::entity::traits::killable::Killable;
+use crate::entity::traits::physics::Physics;
+use crate::entity::traits::solid::Solid;
 use crate::entity::traits::stomper::Stomper;
 use crate::entity::{Entity, EntityFeature, Living};
-use crate::physics::bounding_box::BoundingBox;
+use crate::physics::bounding_box::BBox;
 use crate::physics::{Direction, Position};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -16,37 +18,37 @@ pub struct PlayerEntity {
     entity: Rc<RefCell<Entity>>,
     go: Rc<RefCell<Go>>,
     jump: Rc<RefCell<Jump>>,
-    stomper: Rc<RefCell<Stomper>>,
-    killable: Rc<RefCell<Killable>>,
-    // player_controller: Rc<RefCell<PlayerController>>,
 }
 
 impl PlayerEntity {
-    pub fn new(position: Position, param: &PlayerDefault) -> Self {
+    pub fn new(position: Position, param: &PlayerDefault, physics: Physics) -> Self {
         let size = param.size;
-        let bounding_box = BoundingBox::new(0., 0., size);
+        let bounding_box = BBox::new(0., 0., size);
         let mut entity = Entity::new(String::from("Player"), bounding_box, size);
         entity.x = position.x();
         entity.y = position.y();
-        let entity = Rc::new(RefCell::new(entity));
 
         // Traits
+        let solid = Rc::new(RefCell::new(Solid::new()));
         let go = Rc::new(RefCell::new(Go::new(param.motion)));
         let jump = Rc::new(RefCell::new(Jump::new(param.jumping)));
         let stomper = Rc::new(RefCell::new(Stomper::new(param.stomp)));
-        let killable = Rc::default();
+        let killable = Rc::new(RefCell::new(Killable::new(solid.clone())));
+        let physics = Rc::new(RefCell::new(physics));
+
+        entity.traits.push(solid);
+        entity.traits.push(go.clone());
+        entity.traits.push(jump.clone());
+        entity.traits.push(stomper);
+        entity.traits.push(killable);
+        entity.traits.push(physics);
 
         // Features
-        entity.borrow_mut().features.push(EntityFeature::Stomper);
-        entity.borrow_mut().features.push(EntityFeature::Player);
+        entity.features.push(EntityFeature::Stomper);
+        entity.features.push(EntityFeature::Player);
 
-        Self {
-            entity,
-            go,
-            jump,
-            stomper,
-            killable,
-        }
+        let entity = Rc::new(RefCell::new(entity));
+        Self { entity, go, jump }
     }
 
     pub fn jump_start(&mut self) {
@@ -131,12 +133,5 @@ impl DrawableEntity for PlayerEntity {
         } else {
             EntityDisplay::sprite(name, Sprite::Idle, self.go.borrow().direction())
         }
-    }
-
-    fn traits(&mut self, mut func: TraitUpdater) {
-        func(self.go.clone());
-        func(self.jump.clone());
-        func(self.killable.clone());
-        func(self.stomper.clone());
     }
 }

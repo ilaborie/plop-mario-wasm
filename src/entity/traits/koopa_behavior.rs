@@ -1,7 +1,6 @@
 use crate::entity::traits::walk::Walk;
 use crate::entity::traits::EntityTrait;
-use crate::entity::Entity;
-use crate::utils::log;
+use crate::entity::{Entity, Living};
 use core::cell::RefCell;
 use std::rc::Rc;
 
@@ -52,7 +51,6 @@ impl KoopaBehavior {
     }
 
     fn hide(&mut self, us: Rc<RefCell<Entity>>) {
-        log(&format!("{} hiding", us.borrow().id));
         us.borrow_mut().dx = 0.;
         self.walk.borrow_mut().disable();
         if self.walk_speed == 0. {
@@ -62,15 +60,13 @@ impl KoopaBehavior {
         self.state = KoopaState::Hiding;
     }
 
-    fn unhide(&mut self, us: Rc<RefCell<Entity>>) {
-        log(&format!("{} unhide", us.borrow().id));
+    fn unhide(&mut self, _us: Rc<RefCell<Entity>>) {
         self.walk.borrow_mut().enable();
         self.walk.borrow_mut().set_speed(self.walk_speed);
         self.state = KoopaState::Walking;
     }
 
-    fn panic(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
-        log(&format!("{} panic", us.borrow().id));
+    fn panic(&mut self, _us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
         self.walk.borrow_mut().enable();
         self.walk
             .borrow_mut()
@@ -85,7 +81,6 @@ impl KoopaBehavior {
                 us.borrow_mut().kill(them.borrow().id.as_str());
                 us.borrow_mut().dx = 100.;
                 us.borrow_mut().dy = -200.;
-                us.borrow_mut().can_collide = false;
             }
             KoopaState::Panic => {
                 self.hide(us);
@@ -94,7 +89,6 @@ impl KoopaBehavior {
     }
 
     fn handle_nudge(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
-        log(&format!("{} in {:?} nudge", us.borrow().id, self.state));
         match self.state {
             KoopaState::Walking => {
                 // Killer
@@ -117,6 +111,9 @@ impl KoopaBehavior {
 }
 
 impl EntityTrait for KoopaBehavior {
+    fn name(&self) -> &str {
+        "koopa"
+    }
     fn update(&mut self, us: Rc<RefCell<Entity>>, dt: f64) {
         if self.state == KoopaState::Hiding {
             self.hide_time += dt;
@@ -127,6 +124,9 @@ impl EntityTrait for KoopaBehavior {
     }
 
     fn collides(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+        if them.borrow().living != Living::Alive {
+            return;
+        }
         if them.borrow().is_stomper() {
             if them.borrow().dy > us.borrow().dy {
                 self.handle_stomp(us, them);

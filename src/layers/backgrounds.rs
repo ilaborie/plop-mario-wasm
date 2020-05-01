@@ -52,8 +52,10 @@ impl BackgroundsLayer {
 
     fn redraw(&mut self, range: RangeInclusive<usize>) {
         if self.range != range {
-            self.buffer_context
-                .clear_rect(0., 0., self.size.width as f64, self.size.height as f64);
+            let width = self.size.width as f64;
+            let height = self.size.height as f64;
+
+            self.buffer_context.clear_rect(0., 0., width, height);
             for (x, y, data) in self.tiles.iter() {
                 if range.contains(&x) {
                     self.sprites.draw_tile(

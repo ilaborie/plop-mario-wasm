@@ -20,6 +20,9 @@ impl Stomper {
 }
 
 impl EntityTrait for Stomper {
+    fn name(&self) -> &str {
+        "stomper"
+    }
     fn update(&mut self, entity: Rc<RefCell<Entity>>, dt: f64) {
         if self.queue_bounce {
             self.queue_bounce = false;
@@ -35,8 +38,8 @@ impl EntityTrait for Stomper {
                 let top = them.borrow().collision_box().top();
                 let height = us.borrow().size.height as f64;
                 us.borrow_mut().y = top - height;
+                self.queue_bounce = true;
             }
-            self.queue_bounce = true;
         }
     }
 }

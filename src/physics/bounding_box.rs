@@ -4,7 +4,7 @@ use crate::physics::Size;
 use web_sys::CanvasRenderingContext2d;
 
 #[derive(Copy, Clone, Debug)]
-pub struct BoundingBox {
+pub struct BBox {
     top: f64,
     right: f64,
     bottom: f64,
@@ -12,7 +12,7 @@ pub struct BoundingBox {
 }
 
 #[allow(dead_code)]
-impl BoundingBox {
+impl BBox {
     pub fn new(x: f64, y: f64, size: Size) -> Self {
         let top = y;
         let left = x;
@@ -27,7 +27,7 @@ impl BoundingBox {
         }
     }
 
-    pub fn translate(&self, dx: f64, dy: f64) -> BoundingBox {
+    pub fn translate(&self, dx: f64, dy: f64) -> BBox {
         let top = self.top + dy;
         let bottom = self.bottom + dy;
         let left = self.left + dx;
@@ -71,7 +71,7 @@ impl BoundingBox {
         self.bottom
     }
 
-    pub fn overlaps(&self, other: BoundingBox) -> bool {
+    pub fn overlaps(&self, other: BBox) -> bool {
         self.bottom > other.top
             && self.top < other.bottom
             && self.left < other.right
@@ -79,7 +79,7 @@ impl BoundingBox {
     }
 }
 
-impl Drawable for BoundingBox {
+impl Drawable for BBox {
     fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
         let (cam_x, cam_y) = camera.position();
 

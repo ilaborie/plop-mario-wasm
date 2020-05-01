@@ -1,16 +1,16 @@
-use crate::physics::bounding_box::BoundingBox;
+use crate::physics::bounding_box::BBox;
 use crate::physics::matrix::Matrix;
 use std::cell::RefCell;
 use std::ops::Range;
 use std::rc::Rc;
 
 pub struct TileResolver {
-    tiles: Rc<RefCell<Matrix<BoundingBox>>>,
+    tiles: Rc<RefCell<Matrix<BBox>>>,
     tile_size: u32,
 }
 
 impl TileResolver {
-    pub fn new(tiles: Rc<RefCell<Matrix<BoundingBox>>>, tile_size: u32) -> Self {
+    pub fn new(tiles: Rc<RefCell<Matrix<BBox>>>, tile_size: u32) -> Self {
         Self { tiles, tile_size }
     }
 
@@ -27,11 +27,11 @@ impl TileResolver {
         p_min..p_max
     }
 
-    fn get_by_index(&self, x: u32, y: u32) -> Option<BoundingBox> {
+    fn get_by_index(&self, x: u32, y: u32) -> Option<BBox> {
         self.tiles.borrow().get(x as usize, y as usize).copied()
     }
 
-    pub fn search_by_range(&self, x: f64, y: f64, width: u32, height: u32) -> Vec<BoundingBox> {
+    pub fn search_by_range(&self, x: f64, y: f64, width: u32, height: u32) -> Vec<BBox> {
         let mut result = vec![];
         for x in self.to_index_range(x, x + width as f64) {
             for y in self.to_index_range(y, y + height as f64) {
