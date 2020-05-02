@@ -1,4 +1,5 @@
 use crate::assets::config::MobsDefault;
+use crate::audio::player::{AudioBoard, Fx};
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::goomba::GoombaEntity;
 use crate::entity::koopa::KoopaEntity;
@@ -8,10 +9,12 @@ use crate::physics::bounding_box::BBox;
 use crate::physics::{Position, Size};
 use crate::utils::log;
 use core::fmt;
+use core::fmt::Formatter;
 use std::cell::{Cell, RefCell};
 use std::fmt::Debug;
 use std::rc::Rc;
-use wasm_bindgen::__rt::core::fmt::Formatter;
+use wasm_bindgen::__rt::std::collections::HashSet;
+use web_sys::AudioContext;
 
 pub mod entity_display;
 pub mod entity_drawable;
@@ -33,14 +36,22 @@ pub fn create_mobs(
         .map(|r| BBox::new(r.x as f64, r.y as f64, r.size()))
         .unwrap_or_else(|| BBox::new(0., 0., param.size));
 
-    let mut entity = Entity::new(id, bounding_box, param.size);
+    let mut entity = Entity::new(id, bounding_box, param.size, None);
     entity.dx = param.speed;
     entity.x = position.x();
     entity.y = position.y();
 
     match mobs {
-        "goomba" => Rc::new(RefCell::new(GoombaEntity::new(entity, physics))),
-        "koopa" => Rc::new(RefCell::new(KoopaEntity::new(entity, physics))),
+        "goomba" => Rc::new(RefCell::new(GoombaEntity::new(
+            entity,
+            physics,
+            param.points,
+        ))),
+        "koopa" => Rc::new(RefCell::new(KoopaEntity::new(
+            entity,
+            physics,
+            param.points,
+        ))),
         _ => panic!("Mobs {} not found!", mobs),
     }
 }
@@ -93,10 +104,19 @@ pub struct Entity {
 
     // Features
     features: Vec<EntityFeature>,
+
+    // Audio
+    audio_board: Option<AudioBoard>,
+    sounds: HashSet<Fx>,
 }
 
 impl Entity {
-    pub fn new(id: String, bounding_box: BBox, size: Size) -> Self {
+    pub fn new(
+        id: String,
+        bounding_box: BBox,
+        size: Size,
+        audio_board: Option<AudioBoard>,
+    ) -> Self {
         let traits = vec![];
         let lifetime = 0.;
         let living = Living::Alive;
@@ -107,6 +127,7 @@ impl Entity {
         let features = vec![];
         let queue = vec![];
         let score = Rc::new(Cell::new(0));
+        let sounds = HashSet::new();
 
         Entity {
             id,
@@ -122,6 +143,8 @@ impl Entity {
             size,
             features,
             queue,
+            audio_board,
+            sounds,
         }
     }
 
@@ -216,6 +239,20 @@ impl Entity {
             let mut task = self.queue.remove(0);
             task(self);
         }
+    }
+
+    // Audio
+    fn play_fx(&mut self, fx: Fx) {
+        self.sounds.insert(fx);
+    }
+
+    pub fn play_sounds(&mut self, audio_context: &AudioContext) {
+        if let Some(ab) = &self.audio_board {
+            for &fx in self.sounds.iter() {
+                ab.play(audio_context, fx);
+            }
+        }
+        self.sounds.clear();
     }
 }
 

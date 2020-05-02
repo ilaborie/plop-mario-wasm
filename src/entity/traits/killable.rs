@@ -1,6 +1,7 @@
 use crate::entity::traits::solid::Solid;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
+use crate::game::GameContext;
 use core::cell::RefCell;
 use std::rc::Rc;
 
@@ -26,11 +27,11 @@ impl EntityTrait for Killable {
     fn name(&self) -> &str {
         "killable"
     }
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, dt: f64) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
         let dead = entity.borrow().living == Living::Dead;
         self.solid.borrow_mut().set_obstructs(!dead);
         if dead {
-            self.dead_time += dt;
+            self.dead_time += context.dt();
             if self.dead_time > self.remove_after {
                 entity.borrow_mut().remove();
             }

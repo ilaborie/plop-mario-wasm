@@ -1,6 +1,8 @@
 use crate::assets::config::JumpingDefault;
+use crate::audio::player::Fx;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
+use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -35,15 +37,6 @@ impl Jump {
         }
     }
 
-    fn engage(&mut self, dt: f64) {
-        if self.ready {
-            self.engage_time = self.duration;
-            self.request_time = 0.;
-            self.ready = false;
-        }
-        self.request_time -= dt;
-    }
-
     pub(crate) fn is_jumping(&self) -> bool {
         !self.ready
     }
@@ -61,16 +54,22 @@ impl EntityTrait for Jump {
     fn name(&self) -> &str {
         "jump"
     }
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, dt: f64) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
         if self.request_time > 0. {
-            self.engage(dt);
+            if self.ready {
+                entity.borrow_mut().play_fx(Fx::Jump);
+                self.engage_time = self.duration;
+                self.request_time = 0.;
+                self.ready = false;
+            }
+            self.request_time -= context.dt();
         }
         if self.engage_time > 0. {
             let dx = entity.borrow().dx;
             let speed_bonus = dx.abs() * self.speed_boost;
-            let dy = -(self.velocity + speed_bonus) * dt;
+            let dy = -(self.velocity + speed_bonus) * context.dt();
             entity.borrow_mut().dy = dy;
-            self.engage_time -= dt;
+            self.engage_time -= context.dt();
         }
     }
 

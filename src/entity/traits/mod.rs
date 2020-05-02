@@ -1,4 +1,5 @@
 use crate::entity::{Entity, ObstructionSide};
+use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
 use core::fmt;
 use core::fmt::Formatter;
@@ -19,7 +20,7 @@ pub mod walk;
 
 pub trait EntityTrait {
     fn name(&self) -> &str;
-    fn update(&mut self, _entity: Rc<RefCell<Entity>>, _dt: f64) {}
+    fn update(&mut self, _entity: Rc<RefCell<Entity>>, _context: &GameContext) {}
     fn obstruct(&mut self, _entity: Rc<RefCell<Entity>>, _side: ObstructionSide, _rect: BBox) {}
     fn collides(&mut self, _us: Rc<RefCell<Entity>>, _them: Rc<RefCell<Entity>>) {}
 }
@@ -30,14 +31,14 @@ impl Debug for dyn EntityTrait {
     }
 }
 
-pub fn update(entity: Rc<RefCell<Entity>>, dt: f64) {
+pub fn update(entity: Rc<RefCell<Entity>>, context: &GameContext) {
     let traits = entity.clone().borrow().traits.clone();
 
     for t in traits.into_iter() {
-        t.clone().borrow_mut().update(entity.clone(), dt);
+        t.clone().borrow_mut().update(entity.clone(), context);
     }
 
-    entity.borrow_mut().lifetime += dt;
+    entity.borrow_mut().lifetime += context.dt();
 }
 
 pub fn obstruct(entity: Rc<RefCell<Entity>>, side: ObstructionSide, rect: BBox) {

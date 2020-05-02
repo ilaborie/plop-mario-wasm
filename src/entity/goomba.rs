@@ -16,12 +16,12 @@ pub struct GoombaEntity {
 }
 
 impl GoombaEntity {
-    pub fn new(mut entity: Entity, physics: Physics) -> Self {
+    pub fn new(mut entity: Entity, physics: Physics, points: u32) -> Self {
         // Traits
         let solid = Rc::new(RefCell::new(Solid::new()));
         let walk = Walk::new(entity.dx);
         let walk = Rc::new(RefCell::new(walk));
-        let behavior = GoombaBehavior::new(walk.clone());
+        let behavior = GoombaBehavior::new(walk.clone(), points);
         let behavior = Rc::new(RefCell::new(behavior));
         let killable = Rc::new(RefCell::new(Killable::new(solid.clone())));
         let physics = Rc::new(RefCell::new(physics));

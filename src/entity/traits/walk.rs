@@ -1,5 +1,6 @@
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
+use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -32,7 +33,7 @@ impl EntityTrait for Walk {
     fn name(&self) -> &str {
         "walk"
     }
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, _dt: f64) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, _context: &GameContext) {
         // Move X
         if self.enable {
             entity.borrow_mut().dx = self.speed;

@@ -1,6 +1,6 @@
 {
   "dev": {
-    "showCollision": true
+    "showCollision": false
   },
   "keymap": {
     "KeyA": "MoveLeft",
@@ -43,6 +43,7 @@
   },
   "mobs": {
     "goomba": {
+      "points": 100,
       "speed": 30,
       "size": {
         "width": 16,
@@ -50,6 +51,7 @@
       }
     },
     "koopa": {
+      "points": 120,
       "speed": -35,
       "size": {
         "width": 16,

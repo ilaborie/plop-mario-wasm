@@ -27,5 +27,5 @@ h1 {
 canvas {
     width: 100vmin;
     image-rendering: pixelated;
-    image-rendering: optimizespeed;
+    image-rendering: crisp-edges;
 }

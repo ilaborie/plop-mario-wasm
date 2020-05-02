@@ -1,6 +1,7 @@
 use crate::entity::traits::walk::Walk;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
+use crate::game::GameContext;
 use core::cell::RefCell;
 use std::rc::Rc;
 
@@ -24,10 +25,11 @@ pub struct KoopaBehavior {
     hide_duration: f64,
     walk_speed: f64,
     panic_speed: f64,
+    points: u32,
 }
 
 impl KoopaBehavior {
-    pub fn new(walk: Rc<RefCell<Walk>>) -> Self {
+    pub fn new(walk: Rc<RefCell<Walk>>, points: u32) -> Self {
         let state = KoopaState::default();
         let hide_time = 0.;
         let hide_duration = 5.;
@@ -40,6 +42,7 @@ impl KoopaBehavior {
             hide_duration,
             walk_speed,
             panic_speed,
+            points,
         }
     }
 
@@ -78,7 +81,7 @@ impl KoopaBehavior {
         match self.state {
             KoopaState::Walking => self.hide(us),
             KoopaState::Hiding => {
-                them.borrow_mut().incr_score(120);
+                them.borrow_mut().incr_score(self.points);
                 us.borrow_mut().kill(them.borrow().id.as_str());
                 us.borrow_mut().dx = 100.;
                 us.borrow_mut().dy = -200.;
@@ -115,9 +118,9 @@ impl EntityTrait for KoopaBehavior {
     fn name(&self) -> &str {
         "koopa"
     }
-    fn update(&mut self, us: Rc<RefCell<Entity>>, dt: f64) {
+    fn update(&mut self, us: Rc<RefCell<Entity>>, context: &GameContext) {
         if self.state == KoopaState::Hiding {
-            self.hide_time += dt;
+            self.hide_time += context.dt();
             if self.hide_time > self.hide_duration {
                 self.unhide(us);
             }

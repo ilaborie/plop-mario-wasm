@@ -6,11 +6,12 @@ use std::rc::Rc;
 
 pub struct GoombaBehavior {
     walk: Rc<RefCell<Walk>>,
+    points: u32,
 }
 
 impl GoombaBehavior {
-    pub fn new(walk: Rc<RefCell<Walk>>) -> Self {
-        Self { walk }
+    pub fn new(walk: Rc<RefCell<Walk>>, points: u32) -> Self {
+        Self { walk, points }
     }
 }
 
@@ -26,7 +27,7 @@ impl EntityTrait for GoombaBehavior {
             if them.borrow().dy > us.borrow().dy {
                 // Dead
                 us.borrow_mut().kill(them.borrow().id.as_str());
-                them.borrow_mut().incr_score(100);
+                them.borrow_mut().incr_score(self.points);
                 self.walk.borrow_mut().disable();
             } else {
                 // Kill

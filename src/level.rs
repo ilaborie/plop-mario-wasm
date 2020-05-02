@@ -1,6 +1,7 @@
 use crate::assets::config::Configuration;
 use crate::assets::levels::LevelDefinition;
 use crate::assets::sprites::SpriteSheet;
+use crate::audio::create_player_audio_board;
 use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::player::PlayerEntity;
@@ -8,6 +9,7 @@ use crate::entity::player_env::PlayerEnv;
 use crate::entity::traits::physics::Physics;
 use crate::entity::traits::update;
 use crate::entity::{create_mobs, EntityFeature, Living};
+use crate::game::GameContext;
 use crate::layers::backgrounds::BackgroundsLayer;
 use crate::layers::collision::CollisionLayer;
 use crate::layers::entity::EntityLayer;
@@ -20,7 +22,7 @@ use core::cell::RefCell;
 use std::cell::Cell;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
-use web_sys::CanvasRenderingContext2d;
+use web_sys::{AudioContext, CanvasRenderingContext2d};
 
 pub struct Level {
     compositor: Compositor,
@@ -96,8 +98,15 @@ impl Level {
     ) -> Result<Rc<RefCell<PlayerEnv>>, JsValue> {
         let player_sprites = SpriteSheet::load(player).await?;
         let physics = Physics::new(self.gravity, self.tile_collider.clone());
+        let audio = create_player_audio_board(player).await?;
 
-        let player_entity = PlayerEntity::new(position, &config.player, physics);
+        let player_entity = PlayerEntity::new(
+            String::from(player),
+            position,
+            &config.player,
+            physics,
+            audio,
+        );
         let player = Rc::new(RefCell::new(player_entity));
         self.add_entity(player.clone(), player_sprites, config.dev.show_collision);
 
@@ -180,16 +189,19 @@ impl Level {
         })
     }
 
-    pub fn update(&mut self, dt: f64) {
-        self.entities_updates(dt);
+    pub fn update(&mut self, context: &GameContext) {
+        self.entities_updates(context);
         self.entities_collision();
         self.entities_tasks();
-        self.distance.set(self.distance.get() + 1000. * dt);
+        self.entities_sounds(context.audio_context());
+
+        self.distance
+            .set(self.distance.get() + 1000. * context.dt());
     }
 
-    fn entities_updates(&mut self, dt: f64) {
+    fn entities_updates(&mut self, context: &GameContext) {
         for entity in self.entities.iter() {
-            update(entity.borrow().entity(), dt);
+            update(entity.borrow().entity(), context);
         }
     }
 
@@ -202,6 +214,16 @@ impl Level {
     fn entities_tasks(&mut self) {
         for entity in self.entities.iter() {
             entity.borrow().entity().borrow_mut().finalize();
+        }
+    }
+
+    fn entities_sounds(&mut self, audio_context: &AudioContext) {
+        for entity in self.entities.iter() {
+            entity
+                .borrow()
+                .entity()
+                .borrow_mut()
+                .play_sounds(audio_context);
         }
     }
 }

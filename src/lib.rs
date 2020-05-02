@@ -11,9 +11,11 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
 
 pub mod assets;
+mod audio;
 mod camera;
 mod entity;
-mod keyboard;
+mod game;
+mod input;
 mod layers;
 mod level;
 mod physics;
@@ -31,7 +33,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 pub const DELTA_TIME: f64 = 1. / 60.;
 
-#[wasm_bindgen(start)]
+#[wasm_bindgen]
 pub async fn run() -> Result<(), JsValue> {
     console_log!("Starting...");
     set_panic_hook();

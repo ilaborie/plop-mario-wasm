@@ -1,5 +1,7 @@
+use crate::audio::player::Fx;
 use crate::entity::traits::EntityTrait;
-use crate::entity::Entity;
+use crate::entity::{Entity, Living};
+use crate::game::GameContext;
 use core::cell::RefCell;
 use std::rc::Rc;
 
@@ -23,14 +25,20 @@ impl EntityTrait for Stomper {
     fn name(&self) -> &str {
         "stomper"
     }
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, dt: f64) {
+
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
         if self.queue_bounce {
+            entity.borrow_mut().play_fx(Fx::Stomp);
             self.queue_bounce = false;
-            entity.borrow_mut().dy -= self.bounce_speed * dt;
+            entity.borrow_mut().dy -= self.bounce_speed * context.dt();
         }
     }
 
     fn collides(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+        if us.borrow().living != Living::Alive {
+            return;
+        }
+
         let killable = them.borrow().is_killable();
         if killable {
             let dy = us.borrow().dy;

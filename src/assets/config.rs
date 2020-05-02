@@ -1,5 +1,5 @@
 use crate::assets::sprites::Rectangle;
-use crate::keyboard::Action;
+use crate::input::Action;
 use crate::physics::{Direction, Position, Size};
 use crate::utils::window;
 use std::collections::HashMap;
@@ -40,6 +40,7 @@ pub struct PlayerDefault {
 
 #[derive(Deserialize, Copy, Clone, Debug)]
 pub struct MobsDefault {
+    pub points: u32,
     pub speed: f64,
     pub size: Size,
     pub bbox: Option<Rectangle>,

@@ -1,6 +1,7 @@
 use crate::assets::config::MotionDefault;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living, ObstructionSide};
+use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
 use crate::physics::Direction;
 use std::cell::RefCell;
@@ -107,7 +108,7 @@ impl EntityTrait for Go {
         "go"
     }
 
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, dt: f64) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
         if entity.borrow().living != Living::Alive {
             self.count = 0;
             self.heading = Direction::Right;
@@ -126,7 +127,7 @@ impl EntityTrait for Go {
         let abs_dx = dx.abs();
 
         if direction != Direction::Stop {
-            let ddx = factor * self.acceleration * dt;
+            let ddx = factor * self.acceleration * context.dt();
             entity.borrow_mut().dx += ddx;
         } else if dx != 0. {
             let ddx = abs_dx.min(self.deceleration_base);
@@ -141,7 +142,7 @@ impl EntityTrait for Go {
         let drag = self.drag_factor / 1000. * dx * abs_dx;
         entity.borrow_mut().dx -= drag;
 
-        self.distance += dt * abs_dx;
+        self.distance += context.dt() * abs_dx;
     }
 
     fn obstruct(&mut self, entity: Rc<RefCell<Entity>>, side: ObstructionSide, _rect: BBox) {

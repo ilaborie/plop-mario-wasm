@@ -1,5 +1,6 @@
 use crate::entity::traits::EntityTrait;
 use crate::entity::Entity;
+use crate::game::GameContext;
 use crate::physics::tile_collider::TileCollider;
 use crate::physics::GravityForce;
 use std::cell::RefCell;
@@ -24,7 +25,9 @@ impl EntityTrait for Physics {
         "physics"
     }
 
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, dt: f64) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
+        let dt = context.dt();
+
         // Y
         entity.borrow_mut().apply_velocity_y(dt);
         self.tile_collider.check_y(entity.clone());

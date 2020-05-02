@@ -51,6 +51,12 @@ features = [
     "Response",
     # Performance
     "Performance",
+    # Audio
+    "AudioContext",
+    "AudioBuffer",
+    "AudioNode",
+    "AudioBufferSourceNode",
+    "AudioDestinationNode",
 ]
 
 [dev-dependencies]

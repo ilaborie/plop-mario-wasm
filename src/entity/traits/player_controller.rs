@@ -1,5 +1,6 @@
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
+use crate::game::GameContext;
 use crate::physics::Position;
 use core::cell::RefCell;
 use std::cell::Cell;
@@ -36,8 +37,9 @@ impl EntityTrait for PlayerController {
         "player_controller"
     }
 
-    fn update(&mut self, _entity: Rc<RefCell<Entity>>, dt: f64) {
+    fn update(&mut self, _entity: Rc<RefCell<Entity>>, context: &GameContext) {
         let living = self.player.borrow().living;
+        let dt = context.dt();
         match living {
             Living::Alive => {
                 let time_left = self.time.get() as f64 - dt * 2.;

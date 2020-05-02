@@ -1,5 +1,6 @@
 use crate::assets::config::PlayerDefault;
 use crate::assets::sprites::{AnimationName, Sprite};
+use crate::audio::player::AudioBoard;
 use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::go::Go;
@@ -21,10 +22,16 @@ pub struct PlayerEntity {
 }
 
 impl PlayerEntity {
-    pub fn new(position: Position, param: &PlayerDefault, physics: Physics) -> Self {
+    pub fn new(
+        id: String,
+        position: Position,
+        param: &PlayerDefault,
+        physics: Physics,
+        audio: AudioBoard,
+    ) -> Self {
         let size = param.size;
         let bounding_box = BBox::new(0., 0., size);
-        let mut entity = Entity::new(String::from("Player"), bounding_box, size);
+        let mut entity = Entity::new(id, bounding_box, size, Some(audio));
         entity.x = position.x();
         entity.y = position.y();
 

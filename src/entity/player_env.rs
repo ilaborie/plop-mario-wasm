@@ -21,7 +21,7 @@ impl PlayerEnv {
         let id = String::from("PlayerController");
         let size = Size::default();
         let bbox = BBox::new(0., 0., size);
-        let mut entity = Entity::new(id, bbox, size);
+        let mut entity = Entity::new(id, bbox, size, None);
 
         let mut checkpoint = Position::default();
         checkpoint.set_x(8.);
