@@ -19,13 +19,14 @@ impl EntityTrait for GoombaBehavior {
         "goomba"
     }
     fn collides(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
-        if us.borrow().living != Living::Alive {
+        if them.borrow().living != Living::Alive {
             return;
         }
         if them.borrow().is_stomper() && them.borrow().living == Living::Alive {
             if them.borrow().dy > us.borrow().dy {
                 // Dead
                 us.borrow_mut().kill(them.borrow().id.as_str());
+                them.borrow_mut().incr_score(100);
                 self.walk.borrow_mut().disable();
             } else {
                 // Kill

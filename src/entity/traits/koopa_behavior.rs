@@ -78,6 +78,7 @@ impl KoopaBehavior {
         match self.state {
             KoopaState::Walking => self.hide(us),
             KoopaState::Hiding => {
+                them.borrow_mut().incr_score(120);
                 us.borrow_mut().kill(them.borrow().id.as_str());
                 us.borrow_mut().dx = 100.;
                 us.borrow_mut().dy = -200.;

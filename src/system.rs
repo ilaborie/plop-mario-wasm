@@ -1,8 +1,7 @@
 use crate::assets::config::Configuration;
 use crate::assets::TILE_SIZE;
 use crate::camera::Camera;
-use crate::entity::entity_drawable::DrawableEntity;
-use crate::entity::player::PlayerEntity;
+use crate::entity::player_env::PlayerEnv;
 use crate::keyboard::Keyboard;
 use crate::layers::Drawable;
 use crate::level::Level;
@@ -14,7 +13,7 @@ use web_sys::CanvasRenderingContext2d;
 pub struct System {
     level: Level,
     camera: Camera,
-    player: Rc<RefCell<PlayerEntity>>,
+    player: Rc<RefCell<PlayerEnv>>,
 }
 
 impl System {
@@ -41,8 +40,11 @@ impl System {
             player,
             camera,
         };
-
         Ok(result)
+    }
+
+    pub fn player(&self) -> Rc<RefCell<PlayerEnv>> {
+        self.player.clone()
     }
 
     pub fn draw(&mut self, context: &CanvasRenderingContext2d) {

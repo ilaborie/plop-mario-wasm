@@ -19,6 +19,40 @@ impl CollisionLayer {
         let resolver = level.tiles_collider().resolver();
         Self { resolver, entity }
     }
+
+    fn draw_entity(
+        context: &CanvasRenderingContext2d,
+        cam_x: f64,
+        cam_y: f64,
+        x: f64,
+        y: f64,
+        width: f64,
+        height: f64,
+    ) {
+        context.set_stroke_style(&JsValue::from("red"));
+        context.set_fill_style(&JsValue::from("rgba(128,0,0,.5"));
+        context.set_line_width(0.5);
+        context.stroke_rect(x - cam_x, y - cam_y, width, height);
+    }
+
+    fn draw_box(
+        context: &CanvasRenderingContext2d,
+        cam_x: f64,
+        cam_y: f64,
+        tile_size: f64,
+        xi: u32,
+        yi: u32,
+    ) {
+        context.set_stroke_style(&JsValue::from("blue"));
+        context.set_fill_style(&JsValue::from("rgba(0,0,128,.5"));
+        context.set_line_width(0.5);
+        context.stroke_rect(
+            xi as f64 * tile_size - cam_x,
+            yi as f64 * tile_size - cam_y,
+            tile_size,
+            tile_size,
+        );
+    }
 }
 
 impl Drawable for CollisionLayer {
@@ -35,11 +69,7 @@ impl Drawable for CollisionLayer {
         let y = collision_box.top();
         let width = collision_box.width();
         let height = collision_box.height();
-
-        context.set_stroke_style(&JsValue::from("red"));
-        context.set_fill_style(&JsValue::from("rgba(128,0,0,.5"));
-        context.set_line_width(0.5);
-        context.stroke_rect(x - cam_x, y - cam_y, width, height);
+        CollisionLayer::draw_entity(context, cam_x, cam_y, x, y, width, height);
 
         // Boxes
         let xs = self.resolver.to_index_range(x, x + width);
@@ -47,15 +77,7 @@ impl Drawable for CollisionLayer {
         let tile_size = self.resolver.tile_size() as f64;
         for xi in xs {
             for yi in ys.clone() {
-                context.set_stroke_style(&JsValue::from("blue"));
-                context.set_fill_style(&JsValue::from("rgba(0,0,128,.5"));
-                context.set_line_width(0.5);
-                context.stroke_rect(
-                    xi as f64 * tile_size - cam_x,
-                    yi as f64 * tile_size - cam_y,
-                    tile_size,
-                    tile_size,
-                );
+                CollisionLayer::draw_box(context, cam_x, cam_y, tile_size, xi, yi);
             }
         }
     }

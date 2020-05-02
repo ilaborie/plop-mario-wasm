@@ -1,5 +1,5 @@
 use crate::assets::config::Configuration;
-use crate::entity::player::PlayerEntity;
+use crate::entity::player_env::PlayerEnv;
 use crate::physics::Direction::{Left, Right};
 use crate::utils::window;
 use std::cell::RefCell;
@@ -41,7 +41,7 @@ pub struct Keyboard {
 }
 
 impl Keyboard {
-    pub fn register(&mut self, config: Configuration, player: Rc<RefCell<PlayerEntity>>) {
+    pub fn register(&mut self, config: Configuration, player: Rc<RefCell<PlayerEnv>>) {
         let key_states = self.key_states.clone();
 
         let closure = Closure::wrap(Box::new(move |event: KeyboardEvent| {

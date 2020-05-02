@@ -1,5 +1,7 @@
 use crate::assets::config::Configuration;
+use crate::assets::font::Font;
 use crate::assets::TILE_SIZE;
+use crate::layers::dashboard::Dashboard;
 use crate::physics::Size;
 use crate::system::System;
 use crate::utils::{body, canvas, context_2d, log, request_animation_frame, set_panic_hook, time};
@@ -47,7 +49,14 @@ pub async fn run() -> Result<(), JsValue> {
     let context = context_2d(&can);
 
     // System / Player
-    let mut sys = System::create(&config, "1-1", "mario").await?;
+    let player = "mario";
+    let level = "1-1";
+    let mut sys = System::create(&config, level, player).await?;
+    let player = sys.player();
+
+    // Dashboard
+    let font = Font::load().await?;
+    let mut dashboard = Dashboard::new(font, String::from(level), player.clone());
 
     // Timer
     let mut last_time = 0.0;
@@ -57,22 +66,23 @@ pub async fn run() -> Result<(), JsValue> {
     let g = f.clone();
 
     *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-        // if last_time > 1_000. { // FIXME Stop after 1s
-        //     log("Stop");
-        //     let _ = f.borrow_mut().take();
-        //     return;
-        // }
-
         let time = time();
         accumulated_time += (time - last_time) / 1000.0;
-
         while accumulated_time > DELTA_TIME {
             sys.update(DELTA_TIME);
             sys.draw(&context);
+            dashboard.draw(&context);
 
             accumulated_time -= DELTA_TIME;
         }
         last_time = time;
+
+        // Check ending
+        if player.borrow().time().get() < 0. {
+            log("Finished!");
+            let _ = f.borrow_mut().take();
+            return;
+        }
 
         // Schedule ourself for another requestAnimationFrame callback.
         request_animation_frame(f.borrow().as_ref().unwrap());

@@ -93,19 +93,20 @@ impl Level {
         config: &Configuration,
         player: &str,
         position: Position,
-    ) -> Result<Rc<RefCell<PlayerEntity>>, JsValue> {
+    ) -> Result<Rc<RefCell<PlayerEnv>>, JsValue> {
         let player_sprites = SpriteSheet::load(player).await?;
         let physics = Physics::new(self.gravity, self.tile_collider.clone());
-        let player_entity = PlayerEntity::new(position, &config.player, physics);
 
+        let player_entity = PlayerEntity::new(position, &config.player, physics);
         let player = Rc::new(RefCell::new(player_entity));
         self.add_entity(player.clone(), player_sprites, config.dev.show_collision);
 
         // Controller
-        let env = PlayerEnv::new(player.borrow().entity());
-        self.entities.push(Rc::new(RefCell::new(env)));
+        let player_env = PlayerEnv::new(player);
+        let env = Rc::new(RefCell::new(player_env));
+        self.entities.push(env.clone());
 
-        Ok(player)
+        Ok(env)
     }
 
     async fn create_mobs(

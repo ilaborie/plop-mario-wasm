@@ -6,6 +6,7 @@ use wasm_bindgen_futures::JsFuture;
 use web_sys::HtmlImageElement;
 
 pub mod config;
+pub mod font;
 pub mod levels;
 pub mod sprites;
 

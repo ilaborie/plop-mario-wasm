@@ -8,7 +8,7 @@ use crate::physics::bounding_box::BBox;
 use crate::physics::{Position, Size};
 use crate::utils::log;
 use core::fmt;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::fmt::Debug;
 use std::rc::Rc;
 use wasm_bindgen::__rt::core::fmt::Formatter;
@@ -71,6 +71,7 @@ type Task = Box<dyn FnMut(&mut Entity) -> ()>;
 
 pub struct Entity {
     pub(crate) id: String,
+    score: Rc<Cell<u32>>,
     traits: Vec<Rc<RefCell<dyn EntityTrait>>>,
 
     // Lifetimes
@@ -105,9 +106,11 @@ impl Entity {
         let dy = 0.;
         let features = vec![];
         let queue = vec![];
+        let score = Rc::new(Cell::new(0));
 
         Entity {
             id,
+            score,
             traits,
             lifetime,
             living,
@@ -121,6 +124,15 @@ impl Entity {
             queue,
         }
     }
+
+    pub fn score(&self) -> Rc<Cell<u32>> {
+        self.score.clone()
+    }
+    pub fn incr_score(&mut self, points: u32) {
+        let score = self.score.get() + points;
+        self.score.set(score);
+    }
+
     // Lifetime
     pub fn lifetime(&self) -> f64 {
         self.lifetime
