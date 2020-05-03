@@ -46,7 +46,7 @@ impl DrawableEntity for KoopaEntity {
         self.entity.clone()
     }
 
-    fn entity_display(&self) -> EntityDisplay {
+    fn entity_display(&self) -> Option<EntityDisplay> {
         let dist = self.entity.borrow().lifetime();
         let dx = self.entity.borrow().dx;
         let direction = if dx < 0. {
@@ -56,7 +56,7 @@ impl DrawableEntity for KoopaEntity {
         };
 
         let state = self.behavior.borrow().state();
-        match state {
+        let result = match state {
             KoopaState::Hiding => {
                 if self.behavior.borrow().hide_time() > 3. {
                     EntityDisplay::animation(AnimationName::Wake, dist, direction)
@@ -68,6 +68,8 @@ impl DrawableEntity for KoopaEntity {
                 EntityDisplay::sprite(AnimationName::Walk, Sprite::Hiding, direction)
             }
             KoopaState::Walking => EntityDisplay::animation(AnimationName::Walk, dist, direction),
-        }
+        };
+
+        Some(result)
     }
 }

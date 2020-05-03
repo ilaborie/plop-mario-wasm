@@ -87,7 +87,7 @@ impl KoopaBehavior {
             KoopaState::Hiding => {
                 us.borrow_mut().dx = 100.;
                 us.borrow_mut().dy = -200.;
-                event_emitter.borrow().kill(them, us);
+                event_emitter.borrow().kill(them, us, 100., -200.);
             }
             KoopaState::Panic => {
                 self.hide(us);
@@ -104,7 +104,7 @@ impl KoopaBehavior {
         match self.state {
             KoopaState::Walking => {
                 // Killer
-                event_emitter.borrow().kill(us, them);
+                event_emitter.borrow().kill(us, them, 0., -300.);
             }
             KoopaState::Hiding => {
                 self.panic(us, them);
@@ -115,7 +115,9 @@ impl KoopaBehavior {
                 let impact_dir = delta.signum();
                 if travel_dir != 0. && (travel_dir - impact_dir).abs() > 0. {
                     // Killer
-                    event_emitter.borrow().kill(us, them);
+                    event_emitter.borrow().kill(us, them, 0., -300.);
+                } else {
+                    // FIXME need to move us is the right x
                 }
             }
         };
@@ -142,6 +144,9 @@ impl EntityTrait for KoopaBehavior {
         event_emitter: Rc<RefCell<EventEmitter>>,
     ) {
         if them.borrow().living != Living::Alive {
+            return;
+        }
+        if us.borrow().living != Living::Alive {
             return;
         }
         if them.borrow().is_stomper() {

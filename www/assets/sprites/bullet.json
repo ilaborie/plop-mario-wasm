@@ -1,0 +1,17 @@
+{
+    "imageURL": "/assets/images/characters.gif",
+
+    "frames": [
+        {
+            "name": "bullet",
+            "rect": [267, 334, 16, 14]
+        }
+    ],
+    "animations": [
+        {
+            "name": "bullet",
+            "frameLen": 6,
+            "frames": ["bullet"]
+        }
+    ]
+}

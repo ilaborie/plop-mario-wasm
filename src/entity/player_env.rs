@@ -1,4 +1,3 @@
-use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::events::EventEmitter;
 use crate::entity::player::PlayerEntity;
@@ -134,9 +133,5 @@ impl PlayerEnv {
 impl DrawableEntity for PlayerEnv {
     fn entity(&self) -> Rc<RefCell<Entity>> {
         self.entity.clone()
-    }
-
-    fn entity_display(&self) -> EntityDisplay {
-        unimplemented!()
     }
 }

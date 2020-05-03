@@ -28,8 +28,9 @@ impl EntityTrait for Killable {
         "killable"
     }
     fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
+        let alive = entity.borrow().living == Living::Alive;
         let dead = entity.borrow().living == Living::Dead;
-        self.solid.borrow_mut().set_obstructs(!dead);
+        self.solid.borrow_mut().set_obstructs(alive);
         if dead {
             self.dead_time += context.dt();
             if self.dead_time > self.remove_after {

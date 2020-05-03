@@ -45,7 +45,7 @@ impl DrawableEntity for GoombaEntity {
         self.entity.clone()
     }
 
-    fn entity_display(&self) -> EntityDisplay {
+    fn entity_display(&self) -> Option<EntityDisplay> {
         let dist = self.entity.borrow().lifetime();
         let dx = self.entity.borrow().dx;
         let direction = if dx < 0. {
@@ -54,10 +54,11 @@ impl DrawableEntity for GoombaEntity {
             Direction::Right
         };
 
-        if self.entity.borrow().living == Living::Dead {
+        let result = if self.entity.borrow().living == Living::Dead {
             EntityDisplay::sprite(AnimationName::Walk, Sprite::Flat, direction)
         } else {
             EntityDisplay::animation(AnimationName::Walk, dist, direction)
-        }
+        };
+        Some(result)
     }
 }

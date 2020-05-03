@@ -1,6 +1,6 @@
 {
   "dev": {
-    "showCollision": false
+    "showCollision": true
   },
   "keymap": {
     "KeyA": "MoveLeft",
@@ -14,7 +14,7 @@
     "ShiftLeft": "Run"
   },
   "view": {
-    "width": 17,
+    "width": 16,
     "height": 15
   },
   "gravity": 1500,
@@ -42,8 +42,21 @@
     "stomp": 20000
   },
   "mobs": {
+    "cannon": {
+      "speed": 60,
+      "size": {
+        "width": 16,
+        "height": 14
+      }
+    },
+    "bullet": {
+      "speed": 60,
+      "size": {
+        "width": 16,
+        "height": 14
+      }
+    },
     "goomba": {
-      "points": 100,
       "speed": 30,
       "size": {
         "width": 16,
@@ -51,7 +64,6 @@
       }
     },
     "koopa": {
-      "points": 120,
       "speed": -35,
       "size": {
         "width": 16,

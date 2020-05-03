@@ -1,7 +1,7 @@
 use crate::entity::Entity;
 use crate::utils::log;
+use core::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::__rt::core::cell::RefCell;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EntityEvent {
@@ -25,10 +25,16 @@ impl EventEmitter {
         }
     }
 
-    pub fn kill(&self, killer_entity: Rc<RefCell<Entity>>, killed_entity: Rc<RefCell<Entity>>) {
+    pub fn kill(
+        &self,
+        killer_entity: Rc<RefCell<Entity>>,
+        killed_entity: Rc<RefCell<Entity>>,
+        dx: f64,
+        dy: f64,
+    ) {
         let killer = killer_entity.borrow().id.clone();
         let killed = killed_entity.borrow().id.clone();
-        killed_entity.borrow_mut().kill(killer.clone().as_str());
+        killed_entity.borrow_mut().kill(dx, dy);
         self.emit(EntityEvent::Kill { killer, killed });
     }
 

@@ -22,26 +22,27 @@ pub struct System {
 
 impl System {
     pub async fn create(
-        config: &Configuration,
+        config: Configuration,
         level: &str,
         player_name: &str,
     ) -> Result<Self, JsValue> {
         let camera_size = config.view * TILE_SIZE;
         let camera = Camera::new(camera_size);
 
-        let mut level = Level::load(config, level, config.gravity).await?;
+        let sprite_sheets = vec![
+            String::from(player_name),
+            String::from("bullet"),
+            String::from("cannon"),
+            String::from("goomba"),
+            String::from("koopa"),
+        ];
+        let mut level = Level::load(config.clone(), level, sprite_sheets).await?;
 
         // Events
         let event_emitter: Rc<RefCell<EventEmitter>> = Rc::default();
 
-        let player = level
-            .create_player(
-                &config,
-                player_name,
-                config.player.position,
-                event_emitter.clone(),
-            )
-            .await?;
+        let position = config.player.position;
+        let player = level.create_player(player_name, position, event_emitter.clone());
 
         // Keyboard
         let mut keyboard = Keyboard::default();
@@ -74,12 +75,10 @@ impl System {
         let context = GameContext::new(
             self.audio_context.clone(),
             self.event_emitter.clone(),
-            self.level.clone(),
+            self.player.clone(),
             dt,
         );
         self.level.borrow_mut().update(&context);
-        self.level.borrow_mut().remove_entities();
-        self.level.borrow_mut().respwan_entities();
 
         // Move camera
         let (x, _y) = self.player.borrow().position();

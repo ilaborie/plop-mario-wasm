@@ -13,11 +13,11 @@ pub struct EntityLayer {
     buffer: HtmlCanvasElement,
     buffer_context: CanvasRenderingContext2d,
     entity: Rc<RefCell<dyn DrawableEntity>>,
-    sprites: SpriteSheet,
+    sprites: Rc<SpriteSheet>,
 }
 
 impl EntityLayer {
-    pub fn new(entity: Rc<RefCell<dyn DrawableEntity>>, sprites: SpriteSheet) -> Self {
+    pub fn new(entity: Rc<RefCell<dyn DrawableEntity>>, sprites: Rc<SpriteSheet>) -> Self {
         let size = entity.borrow().size();
         let buffer = canvas(size);
         let buffer_context = context_2d(&buffer);
@@ -44,8 +44,9 @@ impl Drawable for EntityLayer {
         // Sprite or anim
         let removed = self.entity.borrow().living() == Living::NoExistence;
         if !removed {
-            let entity_display = self.entity.borrow().entity_display();
-            entity_display.draw(&self.buffer_context, 0., 0., &self.sprites);
+            if let Some(entity_display) = self.entity.borrow().entity_display() {
+                entity_display.draw(&self.buffer_context, 0., 0., &self.sprites);
+            }
         }
 
         // Draw buffer

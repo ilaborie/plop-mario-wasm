@@ -8,6 +8,8 @@ use std::cell::RefCell;
 use std::fmt::Debug;
 use std::rc::Rc;
 
+pub mod bullet_behavior;
+pub mod emitter;
 pub mod go;
 pub mod goomba_behavior;
 pub mod jump;
@@ -17,6 +19,7 @@ pub mod physics;
 pub mod player_controller;
 pub mod solid;
 pub mod stomper;
+pub mod velocity;
 pub mod walk;
 
 pub trait EntityTrait {

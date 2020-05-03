@@ -19,6 +19,8 @@ pub enum AnimationName {
     Wake,
     #[serde(alias = "chance")]
     Chance,
+    #[serde(alias = "bullet")]
+    Bullet,
 }
 
 #[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
@@ -94,12 +96,14 @@ pub enum Sprite {
     #[serde(alias = "chance-3")]
     Chance3,
     // Cannon
-    #[serde(alias = "canon-1")]
+    #[serde(alias = "cannon-1")]
     Cannon1,
-    #[serde(alias = "canon-2")]
+    #[serde(alias = "cannon-2")]
     Cannon2,
-    #[serde(alias = "canon-3")]
+    #[serde(alias = "cannon-3")]
     Cannon3,
+    #[serde(alias = "bullet")]
+    Bullet,
 }
 
 #[derive(Deserialize, Clone, Copy, Debug)]
@@ -168,7 +172,7 @@ struct SpriteSheetDefinition {
 
 impl SpriteSheetDefinition {
     pub async fn load(name: &str) -> Result<SpriteSheetDefinition, JsValue> {
-        log(&format!("Loading json {}", name));
+        log(&format!("Loading sprite sheet '{}'", name));
         let url = format!("/assets/sprites/{}.json", name);
         let request = Request::new_with_str(&url)?;
 

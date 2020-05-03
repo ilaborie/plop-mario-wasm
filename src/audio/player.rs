@@ -1,4 +1,4 @@
-use crate::utils::window;
+use crate::utils::{log, window};
 use js_sys::ArrayBuffer;
 use std::collections::HashMap;
 use wasm_bindgen::JsCast;
@@ -17,6 +17,8 @@ pub enum Fx {
     Jump,
     #[serde(alias = "stomp")]
     Stomp,
+    #[serde(alias = "shoot")]
+    Shoot,
 }
 
 #[derive(Deserialize)]
@@ -26,6 +28,7 @@ pub struct PlayerAudioDescription {
 
 impl PlayerAudioDescription {
     async fn load(name: &str) -> Result<PlayerAudioDescription, JsValue> {
+        log(&format!("Loading sound sheet '{}'", name));
         let url = format!("/assets/sounds/{}.json", name);
         let request = Request::new_with_str(&url)?;
 
@@ -45,19 +48,18 @@ async fn load_audio_buffer(
     url: &str,
     audio_context: &AudioContext,
 ) -> Result<AudioBuffer, JsValue> {
+    log(&format!("Loading sound '{}'", url));
     let request = Request::new_with_str(&url)?;
 
     let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;
     let resp: Response = resp_value.dyn_into().unwrap();
     let array_buffer = JsFuture::from(resp.array_buffer()?)
         .await?
-        .dyn_into::<ArrayBuffer>()
-        .unwrap();
+        .dyn_into::<ArrayBuffer>()?;
 
     let audio_buffer = JsFuture::from(audio_context.decode_audio_data(&array_buffer).unwrap())
         .await?
-        .dyn_into::<AudioBuffer>()
-        .unwrap();
+        .dyn_into::<AudioBuffer>()?;
 
     Ok(audio_buffer)
 }

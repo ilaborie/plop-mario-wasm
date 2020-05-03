@@ -53,7 +53,7 @@ pub async fn run() -> Result<(), JsValue> {
     // System / Player
     let player = "mario";
     let level = "1-1";
-    let mut sys = System::create(&config, level, player).await?;
+    let mut sys = System::create(config, level, player).await?;
     let player = sys.player();
 
     // Dashboard

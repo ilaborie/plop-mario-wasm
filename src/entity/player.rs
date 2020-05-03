@@ -27,11 +27,11 @@ impl PlayerEntity {
         position: Position,
         param: &PlayerDefault,
         physics: Physics,
-        audio: AudioBoard,
+        audio: Option<Rc<AudioBoard>>,
     ) -> Self {
         let size = param.size;
         let bounding_box = BBox::new(0., 0., size);
-        let mut entity = Entity::new(id, bounding_box, size, Some(audio));
+        let mut entity = Entity::new(id, bounding_box, size, audio);
         entity.x = position.x();
         entity.y = position.y();
 
@@ -115,19 +115,27 @@ impl DrawableEntity for PlayerEntity {
         self.entity.clone()
     }
 
-    fn entity_display(&self) -> EntityDisplay {
+    fn entity_display(&self) -> Option<EntityDisplay> {
         let name = AnimationName::Run;
 
         if self.entity.borrow().living != Living::Alive {
-            return EntityDisplay::sprite(name, Sprite::Dead, self.go.borrow().direction());
+            return Some(EntityDisplay::sprite(
+                name,
+                Sprite::Dead,
+                self.go.borrow().direction(),
+            ));
         }
 
         if self.jump.borrow().is_jumping() {
-            return EntityDisplay::sprite(name, Sprite::Jump, self.go.borrow().direction());
+            return Some(EntityDisplay::sprite(
+                name,
+                Sprite::Jump,
+                self.go.borrow().direction(),
+            ));
         }
 
         let distance = self.go.borrow().distance();
-        if distance > 0. {
+        let result = if distance > 0. {
             let dx = self.entity.borrow().dx;
             let direction = self.go.borrow().direction();
             if (dx > 0. && direction == Direction::Left)
@@ -139,6 +147,7 @@ impl DrawableEntity for PlayerEntity {
             }
         } else {
             EntityDisplay::sprite(name, Sprite::Idle, self.go.borrow().direction())
-        }
+        };
+        Some(result)
     }
 }

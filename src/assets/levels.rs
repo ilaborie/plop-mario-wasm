@@ -3,7 +3,7 @@ use crate::assets::TILE_SIZE;
 use crate::physics::bounding_box::BBox;
 use crate::physics::matrix::Matrix;
 use crate::physics::{Position, Size};
-use crate::utils::window;
+use crate::utils::{log, window};
 use core::slice::Iter;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
@@ -177,7 +177,7 @@ pub struct LevelDefinition {
 
 impl LevelDefinition {
     pub async fn load(name: &str) -> Result<LevelDefinition, JsValue> {
-        // log(&format!("Loading level {}", name).to_string());
+        log(&format!("Loading level {}", name));
         let url = format!("/assets/levels/{}.json", name);
         let request = Request::new_with_str(&url)?;
 

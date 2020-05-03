@@ -31,7 +31,11 @@ impl EntityTrait for Stomper {
         if self.queue_bounce {
             entity.borrow_mut().play_fx(Fx::Stomp);
             self.queue_bounce = false;
-            entity.borrow_mut().dy -= self.bounce_speed * context.dt();
+            let dt = context.dt();
+            let speed = self.bounce_speed;
+            entity.borrow_mut().queue.push(Box::new(move |e| {
+                e.dy -= speed * dt;
+            }));
         }
     }
 

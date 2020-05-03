@@ -1,5 +1,7 @@
 use crate::assets::config::MobsDefault;
 use crate::audio::player::{AudioBoard, Fx};
+use crate::entity::bullet::BulletEntity;
+use crate::entity::cannon::CannonEntity;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::goomba::GoombaEntity;
 use crate::entity::koopa::KoopaEntity;
@@ -11,11 +13,14 @@ use crate::utils::log;
 use core::fmt;
 use core::fmt::Formatter;
 use std::cell::RefCell;
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::rc::Rc;
-use wasm_bindgen::__rt::std::collections::HashSet;
+use std::vec::Drain;
 use web_sys::AudioContext;
 
+pub mod bullet;
+pub mod cannon;
 pub mod entity_display;
 pub mod entity_drawable;
 pub mod events;
@@ -31,13 +36,14 @@ pub fn create_mobs(
     param: &MobsDefault,
     position: Position,
     physics: Physics,
+    audio: Option<Rc<AudioBoard>>,
 ) -> Rc<RefCell<dyn DrawableEntity>> {
     let bounding_box = param
         .bbox
         .map(|r| BBox::new(r.x as f64, r.y as f64, r.size()))
         .unwrap_or_else(|| BBox::new(0., 0., param.size));
 
-    let mut entity = Entity::new(id, bounding_box, param.size, None);
+    let mut entity = Entity::new(id, bounding_box, param.size, audio);
     entity.dx = param.speed;
     entity.x = position.x();
     entity.y = position.y();
@@ -45,6 +51,8 @@ pub fn create_mobs(
     match mobs {
         "goomba" => Rc::new(RefCell::new(GoombaEntity::new(entity, physics))),
         "koopa" => Rc::new(RefCell::new(KoopaEntity::new(entity, physics))),
+        "bullet" => Rc::new(RefCell::new(BulletEntity::new(entity))),
+        "cannon" => Rc::new(RefCell::new(CannonEntity::new(entity))),
         _ => panic!("Mobs {} not found!", mobs),
     }
 }
@@ -73,6 +81,8 @@ pub enum Living {
 
 type Task = Box<dyn FnMut(&mut Entity) -> ()>;
 
+pub type EntityToCreate = (String, Rc<RefCell<dyn DrawableEntity>>);
+
 pub struct Entity {
     pub(crate) id: String,
     traits: Vec<Rc<RefCell<dyn EntityTrait>>>,
@@ -98,8 +108,11 @@ pub struct Entity {
     features: Vec<EntityFeature>,
 
     // Audio
-    audio_board: Option<AudioBoard>,
+    audio_board: Option<Rc<AudioBoard>>,
     sounds: HashSet<Fx>,
+
+    // Creation
+    creation: Vec<EntityToCreate>,
 }
 
 impl Entity {
@@ -107,7 +120,7 @@ impl Entity {
         id: String,
         bounding_box: BBox,
         size: Size,
-        audio_board: Option<AudioBoard>,
+        audio_board: Option<Rc<AudioBoard>>,
     ) -> Self {
         let traits = vec![];
         let lifetime = 0.;
@@ -118,6 +131,7 @@ impl Entity {
         let dy = 0.;
         let features = vec![];
         let queue = vec![];
+        let creation = vec![];
         let sounds = HashSet::new();
 
         Entity {
@@ -135,6 +149,7 @@ impl Entity {
             queue,
             audio_board,
             sounds,
+            creation,
         }
     }
 
@@ -187,13 +202,11 @@ impl Entity {
     pub fn living(&self) -> Living {
         self.living
     }
-    fn kill(&mut self, killer: &str) {
-        log(&format!("{} killed by {}", self.id, killer));
-        // emitter.borrow().emit(EntityEvent::Kill {killed:them.clone(), killer:us.clone()});
-        self.queue.push(Box::new(|mut e| {
+    fn kill(&mut self, dx: f64, dy: f64) {
+        self.queue.push(Box::new(move |mut e| {
             e.living = Living::Dead;
-            e.dx = 0.;
-            e.dy = 0.;
+            e.dx = dx;
+            e.dy = dy;
         }))
     }
     fn remove(&mut self) {
@@ -201,7 +214,7 @@ impl Entity {
         self.living = Living::NoExistence;
     }
     fn revive(&mut self) {
-        log(&format!("ReSpawn {}", self.id));
+        log(&format!("Respawn {}", self.id));
         self.living = Living::Alive;
     }
 
@@ -222,6 +235,10 @@ impl Entity {
             let mut task = self.queue.remove(0);
             task(self);
         }
+    }
+
+    pub fn get_creation(&mut self) -> Drain<'_, EntityToCreate> {
+        self.creation.drain(..)
     }
 
     // Audio

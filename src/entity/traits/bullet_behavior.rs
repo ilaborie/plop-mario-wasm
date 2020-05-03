@@ -1,24 +1,17 @@
 use crate::entity::events::EventEmitter;
-use crate::entity::traits::walk::Walk;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
 use core::cell::RefCell;
 use std::rc::Rc;
 
-pub struct GoombaBehavior {
-    walk: Rc<RefCell<Walk>>,
-}
+#[derive(Default)]
+pub struct BulletBehavior {}
 
-impl GoombaBehavior {
-    pub fn new(walk: Rc<RefCell<Walk>>) -> Self {
-        Self { walk }
-    }
-}
-
-impl EntityTrait for GoombaBehavior {
+impl EntityTrait for BulletBehavior {
     fn name(&self) -> &str {
-        "goomba"
+        "bullet"
     }
+
     fn collides(
         &mut self,
         us: Rc<RefCell<Entity>>,
@@ -31,10 +24,7 @@ impl EntityTrait for GoombaBehavior {
         if them.borrow().is_stomper() && them.borrow().living == Living::Alive {
             if them.borrow().dy > us.borrow().dy {
                 // Dead
-                us.borrow_mut().dx = 0.;
-                us.borrow_mut().dy = -0.;
-                event_emitter.borrow().kill(them, us, 0., 0.);
-                self.walk.borrow_mut().disable();
+                event_emitter.borrow().kill(them, us, 0., 200.);
             } else {
                 event_emitter.borrow().kill(us, them, 0., -300.);
             }
