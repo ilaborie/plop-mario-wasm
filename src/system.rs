@@ -1,6 +1,7 @@
 use crate::assets::config::Configuration;
 use crate::assets::TILE_SIZE;
 use crate::camera::Camera;
+use crate::entity::events::EventEmitter;
 use crate::entity::player_env::PlayerEnv;
 use crate::game::GameContext;
 use crate::input::Keyboard;
@@ -16,6 +17,7 @@ pub struct System {
     camera: Camera,
     player: Rc<RefCell<PlayerEnv>>,
     audio_context: Rc<AudioContext>,
+    event_emitter: Rc<RefCell<EventEmitter>>,
 }
 
 impl System {
@@ -29,25 +31,33 @@ impl System {
 
         let mut level = Level::load(config, level, config.gravity).await?;
 
+        // Events
+        let event_emitter: Rc<RefCell<EventEmitter>> = Rc::default();
+
         let player = level
-            .create_player(&config, player_name, config.player.position)
+            .create_player(
+                &config,
+                player_name,
+                config.player.position,
+                event_emitter.clone(),
+            )
             .await?;
 
         // Keyboard
         let mut keyboard = Keyboard::default();
         keyboard.register(config.clone(), player.clone());
 
-        let level = Rc::new(RefCell::new(level));
-
         // Audio
         let audio_context = AudioContext::new().unwrap();
         let audio_context = Rc::new(audio_context);
 
+        let level = Rc::new(RefCell::new(level));
         let result = Self {
             level,
             player,
             camera,
             audio_context,
+            event_emitter,
         };
         Ok(result)
     }
@@ -61,7 +71,12 @@ impl System {
     }
 
     pub fn update(&mut self, dt: f64) {
-        let context = GameContext::new(self.audio_context.clone(), self.level.clone(), dt);
+        let context = GameContext::new(
+            self.audio_context.clone(),
+            self.event_emitter.clone(),
+            self.level.clone(),
+            dt,
+        );
         self.level.borrow_mut().update(&context);
         self.level.borrow_mut().remove_entities();
         self.level.borrow_mut().respwan_entities();
@@ -76,6 +91,6 @@ impl System {
 
 impl Drop for System {
     fn drop(&mut self) {
-       let _ = self.audio_context.close();
+        let _ = self.audio_context.close();
     }
 }

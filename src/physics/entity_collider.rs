@@ -1,3 +1,4 @@
+use crate::entity::events::EventEmitter;
 use crate::entity::traits::collides;
 use crate::entity::Entity;
 use std::cell::RefCell;
@@ -12,7 +13,7 @@ impl EntityCollider {
     pub fn add_entity(&mut self, entity: Rc<RefCell<Entity>>) {
         self.entities.push(entity);
     }
-    pub fn check(&self, subject: Rc<RefCell<Entity>>) {
+    pub fn check(&self, subject: Rc<RefCell<Entity>>, event_emitter: Rc<RefCell<EventEmitter>>) {
         let subject_box = subject.borrow().collision_box();
 
         for entity in self.entities.iter() {
@@ -23,8 +24,8 @@ impl EntityCollider {
 
             if subject_box.overlaps(entity_box) {
                 // collision
-                collides(subject.clone(), entity.clone());
-                collides(entity.clone(), subject.clone());
+                collides(subject.clone(), entity.clone(), event_emitter.clone());
+                collides(entity.clone(), subject.clone(), event_emitter.clone());
             }
         }
     }

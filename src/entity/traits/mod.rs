@@ -1,3 +1,4 @@
+use crate::entity::events::EventEmitter;
 use crate::entity::{Entity, ObstructionSide};
 use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
@@ -22,7 +23,13 @@ pub trait EntityTrait {
     fn name(&self) -> &str;
     fn update(&mut self, _entity: Rc<RefCell<Entity>>, _context: &GameContext) {}
     fn obstruct(&mut self, _entity: Rc<RefCell<Entity>>, _side: ObstructionSide, _rect: BBox) {}
-    fn collides(&mut self, _us: Rc<RefCell<Entity>>, _them: Rc<RefCell<Entity>>) {}
+    fn collides(
+        &mut self,
+        _us: Rc<RefCell<Entity>>,
+        _them: Rc<RefCell<Entity>>,
+        _event_emitter: Rc<RefCell<EventEmitter>>,
+    ) {
+    }
 }
 
 impl Debug for dyn EntityTrait {
@@ -53,10 +60,15 @@ pub fn obstruct(entity: Rc<RefCell<Entity>>, side: ObstructionSide, rect: BBox) 
     }
 }
 
-pub fn collides(us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+pub fn collides(
+    us: Rc<RefCell<Entity>>,
+    them: Rc<RefCell<Entity>>,
+    event_emitter: Rc<RefCell<EventEmitter>>,
+) {
     let traits = us.borrow().traits.clone();
 
     for t in traits.iter() {
-        t.borrow_mut().collides(us.clone(), them.clone());
+        t.borrow_mut()
+            .collides(us.clone(), them.clone(), event_emitter.clone());
     }
 }

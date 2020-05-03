@@ -40,7 +40,6 @@ pub struct PlayerDefault {
 
 #[derive(Deserialize, Copy, Clone, Debug)]
 pub struct MobsDefault {
-    pub points: u32,
     pub speed: f64,
     pub size: Size,
     pub bbox: Option<Rectangle>,

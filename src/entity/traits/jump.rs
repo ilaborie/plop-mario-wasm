@@ -1,5 +1,6 @@
 use crate::assets::config::JumpingDefault;
 use crate::audio::player::Fx;
+use crate::entity::events::EventEmitter;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
 use crate::game::GameContext;
@@ -83,7 +84,12 @@ impl EntityTrait for Jump {
         }
     }
 
-    fn collides(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+    fn collides(
+        &mut self,
+        us: Rc<RefCell<Entity>>,
+        them: Rc<RefCell<Entity>>,
+        _event_emitter: Rc<RefCell<EventEmitter>>,
+    ) {
         let stomper = us.borrow().is_stomper();
         let killable = them.borrow().is_killable();
         if stomper && killable && us.borrow().dy > them.borrow().dy {

@@ -4,6 +4,7 @@ use crate::assets::sprites::SpriteSheet;
 use crate::audio::create_player_audio_board;
 use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
+use crate::entity::events::EventEmitter;
 use crate::entity::player::PlayerEntity;
 use crate::entity::player_env::PlayerEnv;
 use crate::entity::traits::physics::Physics;
@@ -95,6 +96,7 @@ impl Level {
         config: &Configuration,
         player: &str,
         position: Position,
+        event_emitter: Rc<RefCell<EventEmitter>>,
     ) -> Result<Rc<RefCell<PlayerEnv>>, JsValue> {
         let player_sprites = SpriteSheet::load(player).await?;
         let physics = Physics::new(self.gravity, self.tile_collider.clone());
@@ -111,7 +113,7 @@ impl Level {
         self.add_entity(player.clone(), player_sprites, config.dev.show_collision);
 
         // Controller
-        let player_env = PlayerEnv::new(player);
+        let player_env = PlayerEnv::new(player, event_emitter);
         let env = Rc::new(RefCell::new(player_env));
         self.entities.push(env.clone());
 
@@ -191,7 +193,7 @@ impl Level {
 
     pub fn update(&mut self, context: &GameContext) {
         self.entities_updates(context);
-        self.entities_collision();
+        self.entities_collision(context.emitter());
         self.entities_tasks();
         self.entities_sounds(context.audio_context());
 
@@ -205,9 +207,10 @@ impl Level {
         }
     }
 
-    fn entities_collision(&mut self) {
+    fn entities_collision(&mut self, event_emitter: Rc<RefCell<EventEmitter>>) {
         for entity in self.entities.iter() {
-            self.entity_collider.check(entity.borrow().entity());
+            self.entity_collider
+                .check(entity.borrow().entity(), event_emitter.clone());
         }
     }
 

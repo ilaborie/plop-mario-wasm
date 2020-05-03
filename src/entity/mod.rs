@@ -10,7 +10,7 @@ use crate::physics::{Position, Size};
 use crate::utils::log;
 use core::fmt;
 use core::fmt::Formatter;
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::fmt::Debug;
 use std::rc::Rc;
 use wasm_bindgen::__rt::std::collections::HashSet;
@@ -18,6 +18,7 @@ use web_sys::AudioContext;
 
 pub mod entity_display;
 pub mod entity_drawable;
+pub mod events;
 pub mod goomba;
 pub mod koopa;
 pub mod player;
@@ -42,16 +43,8 @@ pub fn create_mobs(
     entity.y = position.y();
 
     match mobs {
-        "goomba" => Rc::new(RefCell::new(GoombaEntity::new(
-            entity,
-            physics,
-            param.points,
-        ))),
-        "koopa" => Rc::new(RefCell::new(KoopaEntity::new(
-            entity,
-            physics,
-            param.points,
-        ))),
+        "goomba" => Rc::new(RefCell::new(GoombaEntity::new(entity, physics))),
+        "koopa" => Rc::new(RefCell::new(KoopaEntity::new(entity, physics))),
         _ => panic!("Mobs {} not found!", mobs),
     }
 }
@@ -82,7 +75,6 @@ type Task = Box<dyn FnMut(&mut Entity) -> ()>;
 
 pub struct Entity {
     pub(crate) id: String,
-    score: Rc<Cell<u32>>,
     traits: Vec<Rc<RefCell<dyn EntityTrait>>>,
 
     // Lifetimes
@@ -126,12 +118,10 @@ impl Entity {
         let dy = 0.;
         let features = vec![];
         let queue = vec![];
-        let score = Rc::new(Cell::new(0));
         let sounds = HashSet::new();
 
         Entity {
             id,
-            score,
             traits,
             lifetime,
             living,
@@ -146,14 +136,6 @@ impl Entity {
             audio_board,
             sounds,
         }
-    }
-
-    pub fn score(&self) -> Rc<Cell<u32>> {
-        self.score.clone()
-    }
-    pub fn incr_score(&mut self, points: u32) {
-        let score = self.score.get() + points;
-        self.score.set(score);
     }
 
     // Lifetime
@@ -207,6 +189,7 @@ impl Entity {
     }
     fn kill(&mut self, killer: &str) {
         log(&format!("{} killed by {}", self.id, killer));
+        // emitter.borrow().emit(EntityEvent::Kill {killed:them.clone(), killer:us.clone()});
         self.queue.push(Box::new(|mut e| {
             e.living = Living::Dead;
             e.dx = 0.;

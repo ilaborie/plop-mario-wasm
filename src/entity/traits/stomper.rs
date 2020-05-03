@@ -1,4 +1,5 @@
 use crate::audio::player::Fx;
+use crate::entity::events::EventEmitter;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
 use crate::game::GameContext;
@@ -34,7 +35,12 @@ impl EntityTrait for Stomper {
         }
     }
 
-    fn collides(&mut self, us: Rc<RefCell<Entity>>, them: Rc<RefCell<Entity>>) {
+    fn collides(
+        &mut self,
+        us: Rc<RefCell<Entity>>,
+        them: Rc<RefCell<Entity>>,
+        event_emitter: Rc<RefCell<EventEmitter>>,
+    ) {
         if us.borrow().living != Living::Alive {
             return;
         }
@@ -46,6 +52,7 @@ impl EntityTrait for Stomper {
                 let top = them.borrow().collision_box().top();
                 let height = us.borrow().size.height as f64;
                 us.borrow_mut().y = top - height;
+                event_emitter.borrow().stomp(us, them);
                 self.queue_bounce = true;
             }
         }

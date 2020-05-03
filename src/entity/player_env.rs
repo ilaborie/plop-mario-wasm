@@ -1,5 +1,6 @@
 use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
+use crate::entity::events::EventEmitter;
 use crate::entity::player::PlayerEntity;
 use crate::entity::traits::player_controller::PlayerController;
 use crate::entity::{Entity, Living};
@@ -14,10 +15,14 @@ pub struct PlayerEnv {
     player: Rc<RefCell<PlayerEntity>>,
     time: Rc<Cell<f64>>,
     coins: Rc<Cell<u32>>,
+    score: Rc<Cell<u32>>,
 }
 
 impl PlayerEnv {
-    pub fn new(player: Rc<RefCell<PlayerEntity>>) -> Self {
+    pub fn new(
+        player: Rc<RefCell<PlayerEntity>>,
+        event_emitter: Rc<RefCell<EventEmitter>>,
+    ) -> Self {
         let id = String::from("PlayerController");
         let size = Size::default();
         let bbox = BBox::new(0., 0., size);
@@ -29,11 +34,30 @@ impl PlayerEnv {
 
         let time = Rc::new(Cell::new(300.));
         let coins = Rc::new(Cell::new(0));
+        let score = Rc::new(Cell::new(0));
 
         // Traits
-        let controller = PlayerController::new(player.borrow().entity(), time.clone(), checkpoint);
+        let controller =
+            PlayerController::new(player.clone().borrow().entity(), time.clone(), checkpoint);
         let controller = Rc::new(RefCell::new(controller));
         entity.traits.push(controller);
+
+        // Events
+        let sc = score.clone();
+        event_emitter.borrow_mut().on_stomp(
+            player.borrow().id(),
+            Box::new(move |_stomped| {
+                sc.set(sc.get() + 20);
+            }),
+        );
+
+        let sc = score.clone();
+        event_emitter.borrow_mut().on_kill(
+            player.borrow().id(),
+            Box::new(move |_killed| {
+                sc.set(sc.get() + 80);
+            }),
+        );
 
         let entity = Rc::new(RefCell::new(entity));
         Self {
@@ -41,6 +65,7 @@ impl PlayerEnv {
             entity,
             time,
             coins,
+            score,
         }
     }
 
@@ -49,7 +74,7 @@ impl PlayerEnv {
         self.player.borrow().id().to_uppercase()
     }
     pub fn score(&self) -> Rc<Cell<u32>> {
-        self.player.borrow().entity().borrow().score()
+        self.score.clone()
     }
     pub fn time(&self) -> Rc<Cell<f64>> {
         self.time.clone()
