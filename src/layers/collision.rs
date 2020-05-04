@@ -1,8 +1,8 @@
+use crate::assets::TILE_SIZE;
 use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::Living;
 use crate::layers::Drawable;
-use crate::level::Level;
 use crate::physics::tile_resolver::TileResolver;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -11,13 +11,11 @@ use web_sys::CanvasRenderingContext2d;
 
 pub struct CollisionLayer {
     entity: Rc<RefCell<dyn DrawableEntity>>,
-    resolver: Rc<TileResolver>,
 }
 
 impl CollisionLayer {
-    pub(crate) fn new(level: &Level, entity: Rc<RefCell<dyn DrawableEntity>>) -> Self {
-        let resolver = level.tiles_collider().resolver();
-        Self { resolver, entity }
+    pub(crate) fn new(entity: Rc<RefCell<dyn DrawableEntity>>) -> Self {
+        Self { entity }
     }
 
     fn draw_entity(
@@ -72,9 +70,9 @@ impl Drawable for CollisionLayer {
         CollisionLayer::draw_entity(context, cam_x, cam_y, x, y, width, height);
 
         // Boxes
-        let xs = self.resolver.to_index_range(x, x + width);
-        let ys = self.resolver.to_index_range(y, y + height);
-        let tile_size = self.resolver.tile_size() as f64;
+        let xs = TileResolver::index_range(TILE_SIZE, x, x + width);
+        let ys = TileResolver::index_range(TILE_SIZE, y, y + height);
+        let tile_size = TILE_SIZE as f64;
         for xi in xs {
             for yi in ys.clone() {
                 CollisionLayer::draw_box(context, cam_x, cam_y, tile_size, xi, yi);

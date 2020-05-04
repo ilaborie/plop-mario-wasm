@@ -1,5 +1,6 @@
 {
     "spriteSheet": "overworld",
+    "musicSheet": "overworld",
 
     "patterns": {
         "cloud-single": {
@@ -231,7 +232,7 @@
             "tiles": [
                 {
                     "name": "bricks",
-                    "type": "ground",
+                    "type": "brick",
                     "ranges": [
                         [
                             27, 5,

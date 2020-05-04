@@ -1,7 +1,9 @@
 use crate::assets::config::Configuration;
 use crate::assets::levels::LevelDefinition;
 use crate::assets::sprites::SpriteSheet;
-use crate::audio::player::AudioBoard;
+use crate::audio::musics::{MusicPlayer, Track};
+use crate::audio::sounds::AudioBoard;
+use crate::audio::MusicController;
 use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::events::EventEmitter;
@@ -35,13 +37,14 @@ pub struct Level {
     compositor: Compositor,
     entities: Vec<Rc<RefCell<dyn DrawableEntity>>>,
     respawn_entities: Vec<Rc<RefCell<dyn DrawableEntity>>>,
-    tile_collider: Rc<TileCollider>,
+    tile_collider: Rc<RefCell<TileCollider>>,
     entity_collider: EntityCollider,
     gravity: GravityForce,
     distance: Rc<Cell<f64>>,
     next_mob: u32,
     spite_sheets: HashMap<String, Rc<SpriteSheet>>,
     audio_boards: HashMap<String, Rc<AudioBoard>>,
+    music_controller: MusicController,
 }
 
 impl Level {
@@ -52,15 +55,17 @@ impl Level {
     ) -> Result<Self, JsValue> {
         let name = String::from(level_name);
         let level_def = LevelDefinition::load(level_name).await?;
-        let (backgrounds_matrix, collision_matrix, bg_sprites, gravity) = level_def.build().await?;
+        let (matrix, bg_sprites, gravity) = level_def.build().await?;
+
+        let music_player = MusicPlayer::load_music(level_def.music_sheet()).await?;
+        let music_controller = MusicController::new(music_player);
 
         let gravity = GravityForce::new(gravity.unwrap_or(config.gravity));
         let entities = vec![];
         let respawn_entities = vec![];
         let next_mob = 0;
 
-        let collision = Rc::new(RefCell::new(collision_matrix));
-        let tile_collider = Rc::new(TileCollider::new(collision));
+        let tile_collider = Rc::new(RefCell::new(TileCollider::new(&matrix)));
         let entity_collider = EntityCollider::default();
         let distance = Rc::new(Cell::new(0.));
 
@@ -69,12 +74,11 @@ impl Level {
         // Background
         let bg_sprites = Rc::new(bg_sprites);
 
-        for background_matrix in backgrounds_matrix {
+        for background_matrix in matrix.iter() {
             let bg_layer = BackgroundsLayer::new(
                 config.view,
-                background_matrix,
+                background_matrix.clone(),
                 bg_sprites.clone(),
-                tile_collider.resolver().clone(),
                 distance.clone(),
             );
             compositor.add_layer(Rc::new(RefCell::new(bg_layer)));
@@ -90,7 +94,7 @@ impl Level {
         // Audio
         let mut audio_boards = HashMap::new();
         for sheet in loading_sprites.iter() {
-            if let Ok(audio) = AudioBoard::load(sheet).await {
+            if let Ok(audio) = AudioBoard::load_sounds(sheet).await {
                 audio_boards.insert(sheet.clone(), Rc::new(audio));
             }
         }
@@ -108,6 +112,7 @@ impl Level {
             next_mob,
             spite_sheets,
             audio_boards,
+            music_controller,
         };
 
         for entity_def in level_def.entities() {
@@ -115,6 +120,10 @@ impl Level {
         }
 
         Ok(result)
+    }
+
+    pub fn start(&self) {
+        self.music_controller.play(Track::Main);
     }
 
     pub fn create_player(
@@ -163,10 +172,6 @@ impl Level {
         result
     }
 
-    pub fn tiles_collider(&self) -> Rc<TileCollider> {
-        self.tile_collider.clone()
-    }
-
     fn add_entity(&mut self, sheet: &str, entity: Rc<RefCell<dyn DrawableEntity>>) {
         let sprites = self
             .spite_sheets
@@ -177,7 +182,7 @@ impl Level {
         self.entity_collider.add_entity(entity.borrow().entity());
 
         if self.config.dev.show_collision {
-            let collision = CollisionLayer::new(&self, entity.clone());
+            let collision = CollisionLayer::new(entity.clone());
             self.compositor.add_layer(Rc::new(RefCell::new(collision)));
         }
 

@@ -1,5 +1,5 @@
 use crate::assets::config::MobsDefault;
-use crate::audio::player::{AudioBoard, Fx};
+use crate::audio::sounds::{AudioBoard, Fx};
 use crate::entity::bullet::BulletEntity;
 use crate::entity::cannon::CannonEntity;
 use crate::entity::entity_drawable::DrawableEntity;

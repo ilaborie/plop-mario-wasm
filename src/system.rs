@@ -52,6 +52,9 @@ impl System {
         let audio_context = AudioContext::new().unwrap();
         let audio_context = Rc::new(audio_context);
 
+        // Level start
+        level.start();
+
         let level = Rc::new(RefCell::new(level));
         let result = Self {
             level,

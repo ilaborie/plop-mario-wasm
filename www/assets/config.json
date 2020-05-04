@@ -39,7 +39,7 @@
       "deceleration": 5,
       "dragFactor": 0.25
     },
-    "stomp": 20000
+    "stomp": 5000
   },
   "mobs": {
     "cannon": {

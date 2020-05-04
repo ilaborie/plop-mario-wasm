@@ -3,6 +3,7 @@ use crate::physics::Size;
 pub struct Matrix<T> {
     grid: Vec<Vec<Option<T>>>,
     size: Size,
+    version: u32,
 }
 
 impl<T: Clone> Matrix<T> {
@@ -11,7 +12,16 @@ impl<T: Clone> Matrix<T> {
         for _i in 0..size.width {
             grid.push(vec![None; size.height as usize]);
         }
-        Self { grid, size }
+        let version = 0;
+        Self {
+            grid,
+            size,
+            version,
+        }
+    }
+
+    pub fn version(&self) -> u32 {
+        self.version
     }
 
     pub fn get(&self, x: usize, y: usize) -> Option<&T> {
@@ -26,13 +36,14 @@ impl<T: Clone> Matrix<T> {
         if x < self.size.width as usize && y < self.size.height as usize {
             self.grid[x][y] = Some(elt);
         }
+        self.version += 1;
     }
 
-    #[allow(dead_code)]
-    pub fn reset(&mut self, x: usize, y: usize) {
+    pub fn remove(&mut self, x: usize, y: usize) {
         if x < self.size.width as usize && y < self.size.height as usize {
             self.grid[x][y] = None;
         }
+        self.version += 1;
     }
 
     pub fn iter(&self) -> Vec<(usize, usize, &T)> {

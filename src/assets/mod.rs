@@ -18,6 +18,16 @@ extern "C" {
     fn loadImage(path: &str) -> Promise;
 }
 
+//
+// loadImage: (url) => {
+//     return new Promise(resolve => {
+//         logger.info("Loading image", url);
+//         const img = new Image();
+//         img.onload = () => resolve(img);
+//         img.src = url;
+//     });
+// }
+
 async fn load_image(path: &str) -> Result<HtmlImageElement, JsValue> {
     let promise = loadImage(path);
     let result = JsFuture::from(promise).await?;

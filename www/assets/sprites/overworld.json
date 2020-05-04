@@ -21,10 +21,13 @@
             "index": [1, 0]
         },
         {
+            "name": "bricks-broken",
+            "index": [1, 1]
+        },
+        {
             "name": "chance",
             "index": [24, 0]
         },
-
         {
             "name": "chance-1",
             "index": [24, 0]

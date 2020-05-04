@@ -6,8 +6,10 @@ use crate::physics::{Position, Size};
 use crate::utils::{log, window};
 use core::slice::Iter;
 use std::collections::HashMap;
+use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::__rt::core::cell::RefCell;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, Response};
 
@@ -15,6 +17,10 @@ use web_sys::{Request, Response};
 pub enum Kind {
     #[serde(alias = "ground")]
     Ground,
+    #[serde(alias = "brick")]
+    Brick,
+    #[serde(alias = "brick-broken")]
+    BrickBroken,
 }
 
 pub struct Ranges {
@@ -108,36 +114,71 @@ impl TilesDefinition {
         let left = (x * tile_size.width) as f64;
         let top = (y * tile_size.height) as f64;
         let rectangle = BBox::new(top, left, tile_size);
-        TileData::new(sprite, self.kind, self.animation, rectangle)
+        TileData::new(sprite, (x, y), self.kind, self.animation, rectangle)
     }
 }
 
 //
 #[derive(Copy, Clone, Debug)]
 pub struct TileData {
-    pub(crate) sprite: Sprite,
-    pub(crate) tile: Option<Kind>,
-    pub(crate) animation: Option<AnimationName>,
-    pub(crate) rectangle: BBox,
+    sprite: Sprite,
+    position: (u32, u32),
+    tile: Option<Kind>,
+    animation: Option<AnimationName>,
+    rectangle: BBox,
 }
 
 impl TileData {
     pub fn new(
         sprite: Sprite,
+        position: (u32, u32),
         tile: Option<Kind>,
         animation: Option<AnimationName>,
         rectangle: BBox,
     ) -> Self {
         Self {
             sprite,
+            position,
             tile,
             animation,
             rectangle,
         }
     }
 
-    pub fn offset(&mut self, x: f64, y: f64) {
-        self.rectangle = self.rectangle.translate(x, y);
+    pub fn replace_sprite(&self, sprite: Sprite) -> TileData {
+        TileData::new(
+            sprite,
+            self.position,
+            self.tile,
+            self.animation,
+            self.rectangle,
+        )
+    }
+
+    pub fn sprite(&self) -> Sprite {
+        self.sprite
+    }
+
+    pub fn position(&self) -> (u32, u32) {
+        self.position
+    }
+
+    pub fn tile(&self) -> Option<Kind> {
+        self.tile
+    }
+    pub fn animation(&self) -> Option<AnimationName> {
+        self.animation
+    }
+    pub fn rectangle(&self) -> BBox {
+        self.rectangle
+    }
+
+    pub fn offset(&mut self, x: u32, y: u32) {
+        let (x0, y0) = self.position;
+        self.position = (x0 + x, y0 + y);
+        self.rectangle = self
+            .rectangle
+            .translate((x * TILE_SIZE) as f64, (y * TILE_SIZE) as f64);
     }
 }
 
@@ -167,6 +208,8 @@ impl EntityDefinition {
 pub struct LevelDefinition {
     #[serde(alias = "spriteSheet")]
     sprite_sheet: String,
+    #[serde(alias = "musicSheet")]
+    music_sheet: String,
     #[serde(alias = "tileSize")]
     tile_size: Option<Size>,
     layers: Vec<LayerDefinition>,
@@ -192,6 +235,10 @@ impl LevelDefinition {
         Ok(level)
     }
 
+    pub fn music_sheet(&self) -> &str {
+        self.music_sheet.as_ref()
+    }
+
     pub fn entities(&self) -> &[EntityDefinition] {
         self.entities.as_slice()
     }
@@ -201,7 +248,7 @@ impl LevelDefinition {
         for tiles in pattern_definition.tiles() {
             for (x, y) in tiles.coords() {
                 for &(offset_x, offset_y, mut data) in self.get_tiles_data(tiles).iter() {
-                    data.offset((x * TILE_SIZE) as f64, (y * TILE_SIZE) as f64);
+                    data.offset(x, y);
                     result.push((x + offset_x, y + offset_y, data));
                 }
             }
@@ -234,7 +281,7 @@ impl LevelDefinition {
             for tiles in layer.tiles.iter() {
                 for (x, y) in tiles.coords() {
                     for &(offset_x, offset_y, mut data) in self.get_tiles_data(tiles).iter() {
-                        data.offset((x * TILE_SIZE) as f64, (y * TILE_SIZE) as f64);
+                        data.offset(x, y);
                         layer_vec.push((x + offset_x, y + offset_y, data))
                     }
                 }
@@ -263,48 +310,21 @@ impl LevelDefinition {
         }
         matrix
     }
-    fn create_collision_matrix(&self, size: Size, data: &[Vec<XYTileData>]) -> Matrix<BBox> {
-        let mut matrix = Matrix::new(size);
-        for v in data.iter() {
-            for (x, y, data) in v.iter() {
-                if data.tile == Some(Kind::Ground) {
-                    matrix.set(*x as usize, *y as usize, data.rectangle.clone());
-                } else {
-                    matrix.reset(*x as usize, *y as usize);
-                }
-            }
-        }
-        matrix
-    }
 
     pub async fn build(
         &self,
-    ) -> Result<
-        (
-            Vec<Matrix<TileData>>,
-            Matrix<BBox>,
-            SpriteSheet,
-            Option<f64>,
-        ),
-        JsValue,
-    > {
+    ) -> Result<(Vec<Rc<RefCell<Matrix<TileData>>>>, SpriteSheet, Option<f64>), JsValue> {
         let all_tile_data = self.compute_tiles_data();
 
         let size = self.compute_size(&all_tile_data);
-        let collision_matrix = self.create_collision_matrix(size, &all_tile_data);
         let mut backgrounds_matrix = vec![];
         for v in all_tile_data {
             let background_matrix = self.create_background_matrix(size, v.to_vec());
-            backgrounds_matrix.push(background_matrix);
+            backgrounds_matrix.push(Rc::new(RefCell::new(background_matrix)));
         }
 
         let sprite_sheet = SpriteSheet::load(self.sprite_sheet.as_str()).await?;
 
-        Ok((
-            backgrounds_matrix,
-            collision_matrix,
-            sprite_sheet,
-            self.gravity,
-        ))
+        Ok((backgrounds_matrix, sprite_sheet, self.gravity))
     }
 }

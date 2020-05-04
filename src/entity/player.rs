@@ -1,6 +1,6 @@
 use crate::assets::config::PlayerDefault;
 use crate::assets::sprites::{AnimationName, Sprite};
-use crate::audio::player::AudioBoard;
+use crate::audio::sounds::AudioBoard;
 use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::go::Go;

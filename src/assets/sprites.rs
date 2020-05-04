@@ -63,7 +63,9 @@ pub enum Sprite {
     #[serde(alias = "coin")]
     Coin,
     #[serde(alias = "bricks")]
-    Bricks,
+    Brick,
+    #[serde(alias = "bricks-broken")]
+    BrickBroken,
     #[serde(alias = "chocolate")]
     Chocolate,
     // Pipes

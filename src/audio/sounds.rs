@@ -21,34 +21,11 @@ pub enum Fx {
     Shoot,
 }
 
-#[derive(Deserialize)]
-pub struct PlayerAudioDescription {
-    fx: HashMap<Fx, FxDescription>,
-}
-
-impl PlayerAudioDescription {
-    async fn load(name: &str) -> Result<PlayerAudioDescription, JsValue> {
-        log(&format!("Loading sound sheet '{}'", name));
-        let url = format!("/assets/sounds/{}.json", name);
-        let request = Request::new_with_str(&url)?;
-
-        let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;
-        let resp: Response = resp_value.dyn_into().unwrap();
-        let json = JsFuture::from(resp.json()?).await?;
-
-        let audio_description = json
-            .into_serde::<PlayerAudioDescription>()
-            .expect("Error during player sounds loading");
-
-        Ok(audio_description)
-    }
-}
-
 async fn load_audio_buffer(
     url: &str,
     audio_context: &AudioContext,
 ) -> Result<AudioBuffer, JsValue> {
-    log(&format!("Loading sound '{}'", url));
+    log(&format!("Loading audio file '{}'", url));
     let request = Request::new_with_str(&url)?;
 
     let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;
@@ -64,14 +41,37 @@ async fn load_audio_buffer(
     Ok(audio_buffer)
 }
 
+#[derive(Deserialize)]
+pub struct SoundAudioDescription {
+    fx: HashMap<Fx, FxDescription>,
+}
+
+impl SoundAudioDescription {
+    async fn load(name: &str) -> Result<SoundAudioDescription, JsValue> {
+        log(&format!("Loading sound sheet '{}'", name));
+        let url = format!("/assets/sounds/{}.json", name);
+        let request = Request::new_with_str(&url)?;
+
+        let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;
+        let resp: Response = resp_value.dyn_into().unwrap();
+        let json = JsFuture::from(resp.json()?).await?;
+
+        let audio_description = json
+            .into_serde::<SoundAudioDescription>()
+            .expect("Error during sounds loading");
+
+        Ok(audio_description)
+    }
+}
+
 #[derive(Default)]
 pub struct AudioBoard {
     map: HashMap<Fx, AudioBuffer>,
 }
 
 impl AudioBoard {
-    pub async fn load(name: &str) -> Result<AudioBoard, JsValue> {
-        let desc = PlayerAudioDescription::load(name).await?;
+    pub async fn load_sounds(name: &str) -> Result<AudioBoard, JsValue> {
+        let desc = SoundAudioDescription::load(name).await?;
         let audio_context = AudioContext::new().unwrap();
 
         let mut map = HashMap::new();

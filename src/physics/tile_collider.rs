@@ -1,3 +1,5 @@
+use crate::assets::levels::{Kind, TileData};
+use crate::assets::sprites::Sprite;
 use crate::assets::TILE_SIZE;
 use crate::entity::traits::obstruct;
 use crate::entity::{Entity, ObstructionSide};
@@ -6,22 +8,26 @@ use crate::physics::matrix::Matrix;
 use crate::physics::tile_resolver::TileResolver;
 use std::cell::RefCell;
 use std::rc::Rc;
+use wasm_bindgen::__rt::core::slice::Iter;
 
 pub struct TileCollider {
-    resolver: Rc<TileResolver>,
+    resolvers: Vec<TileResolver>,
 }
 
 impl TileCollider {
-    pub fn new(tiles: Rc<RefCell<Matrix<BBox>>>) -> Self {
-        let resolver = Rc::new(TileResolver::new(tiles, TILE_SIZE));
-        Self { resolver }
+    pub fn new(tiles: &[Rc<RefCell<Matrix<TileData>>>]) -> Self {
+        let resolvers = tiles
+            .iter()
+            .map(|mat| TileResolver::new(mat.clone(), TILE_SIZE))
+            .collect();
+        Self { resolvers }
     }
 
-    pub fn resolver(&self) -> Rc<TileResolver> {
-        self.resolver.clone()
+    pub fn resolvers(&self) -> Iter<'_, TileResolver> {
+        self.resolvers.iter()
     }
 
-    pub fn check_x(&self, entity: Rc<RefCell<Entity>>) {
+    pub fn check_x(&mut self, entity: Rc<RefCell<Entity>>) {
         let dx = entity.borrow().dx();
         if dx == 0.0 {
             return;
@@ -37,22 +43,16 @@ impl TileCollider {
             collision_box.left()
         };
 
-        for rect in self.resolver.search_by_range(x_test, y, 0, height as u32) {
-            let bounding_box = entity.borrow().collision_box();
-            // collision
-            if dx > 0.0 {
-                if bounding_box.right() > rect.left() {
-                    obstruct(entity, ObstructionSide::Right, rect);
-                    return;
+        for resolver in self.resolvers.iter_mut() {
+            for tile_data in resolver.search_by_range(x_test, y, 0, height as u32) {
+                if let Some(tile) = tile_data.tile() {
+                    tile.handle_x(entity.clone(), tile_data, resolver)
                 }
-            } else if dx < 0.0 && bounding_box.left() < rect.right() {
-                obstruct(entity, ObstructionSide::Left, rect);
-                return;
             }
         }
     }
 
-    pub fn check_y(&self, entity: Rc<RefCell<Entity>>) {
+    pub fn check_y(&mut self, entity: Rc<RefCell<Entity>>) {
         let dy = entity.borrow().dy();
         if dy == 0.0 {
             return;
@@ -67,20 +67,84 @@ impl TileCollider {
         } else {
             collision_box.top()
         };
-        let tiles = self.resolver.search_by_range(x, y_test, width as u32, 0);
-        for &rect in tiles.iter() {
-            let bbox = entity.borrow().collision_box();
 
-            // Ground collision
-            if dy > 0.0 {
-                if bbox.bottom() > rect.top() {
-                    obstruct(entity, ObstructionSide::Bottom, rect);
-
-                    return;
+        for resolver in self.resolvers.iter_mut() {
+            let tiles = resolver.search_by_range(x, y_test, width as u32, 0);
+            for tile_data in tiles.iter() {
+                if let Some(tile) = tile_data.tile() {
+                    tile.handle_y(entity.clone(), tile_data, resolver)
                 }
-            } else if dy < 0.0 && bbox.top() < rect.bottom() {
-                obstruct(entity, ObstructionSide::Top, rect);
-                return;
+            }
+        }
+    }
+}
+
+impl Kind {
+    fn handle_x(
+        self,
+        entity: Rc<RefCell<Entity>>,
+        tile_data: TileData,
+        _resolver: &mut TileResolver,
+    ) {
+        Kind::handle_solid_x(entity, tile_data.rectangle());
+    }
+
+    fn handle_y(
+        self,
+        entity: Rc<RefCell<Entity>>,
+        tile_data: &TileData,
+        resolver: &mut TileResolver,
+    ) {
+        match self {
+            Kind::Ground => Kind::handle_solid_y(entity, tile_data.rectangle()),
+            Kind::Brick => Kind::handle_brick_y(entity, tile_data, resolver),
+            Kind::BrickBroken => Kind::handle_brick_y(entity, tile_data, resolver),
+        }
+    }
+
+    fn handle_solid_x(entity: Rc<RefCell<Entity>>, rect: BBox) {
+        let bbox = entity.borrow().collision_box();
+        let dx = entity.borrow().dx();
+        if dx > 0.0 {
+            if bbox.right() > rect.left() {
+                obstruct(entity, ObstructionSide::Right, rect);
+            }
+        } else if dx < 0.0 && bbox.left() < rect.right() {
+            obstruct(entity, ObstructionSide::Left, rect);
+        }
+    }
+
+    fn handle_solid_y(entity: Rc<RefCell<Entity>>, rect: BBox) {
+        let bbox = entity.borrow().collision_box();
+        let dy = entity.borrow().dy();
+        if dy > 0.0 {
+            if bbox.bottom() > rect.top() {
+                obstruct(entity, ObstructionSide::Bottom, rect);
+            }
+        } else if dy < 0.0 && bbox.top() < rect.bottom() {
+            obstruct(entity, ObstructionSide::Top, rect);
+        }
+    }
+
+    fn handle_brick_y(
+        entity: Rc<RefCell<Entity>>,
+        tile_data: &TileData,
+        resolver: &mut TileResolver,
+    ) {
+        let bbox = entity.borrow().collision_box();
+        let dy = entity.borrow().dy();
+        let rect = tile_data.rectangle();
+        if dy > 0.0 {
+            if bbox.bottom() > rect.top() {
+                obstruct(entity, ObstructionSide::Bottom, rect);
+            }
+        } else if dy < 0.0 && bbox.top() < rect.bottom() {
+            obstruct(entity, ObstructionSide::Top, rect);
+            if tile_data.sprite() == Sprite::Brick {
+                let td = tile_data.replace_sprite(Sprite::BrickBroken);
+                resolver.update(td);
+            } else {
+                resolver.remove(tile_data);
             }
         }
     }

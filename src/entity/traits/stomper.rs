@@ -1,4 +1,4 @@
-use crate::audio::player::Fx;
+use crate::audio::sounds::Fx;
 use crate::entity::events::EventEmitter;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};

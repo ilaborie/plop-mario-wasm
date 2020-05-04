@@ -1,4 +1,4 @@
-use crate::audio::player::Fx;
+use crate::audio::sounds::Fx;
 use crate::entity::bullet::BulletEntity;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::emitter::Emitter;

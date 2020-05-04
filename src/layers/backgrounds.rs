@@ -7,6 +7,7 @@ use crate::physics::matrix::Matrix;
 use crate::physics::tile_resolver::TileResolver;
 use crate::physics::{Direction, Size};
 use crate::utils::{canvas, context_2d};
+use core::cell::RefCell;
 use core::ops::RangeInclusive;
 use std::cell::Cell;
 use std::rc::Rc;
@@ -16,19 +17,18 @@ pub struct BackgroundsLayer {
     size: Size,
     buffer: HtmlCanvasElement,
     buffer_context: CanvasRenderingContext2d,
-    tiles: Matrix<TileData>,
+    tiles: Rc<RefCell<Matrix<TileData>>>,
     sprites: Rc<SpriteSheet>,
-    revolver: Rc<TileResolver>,
     range: RangeInclusive<usize>,
+    version: u32,
     distance: Rc<Cell<f64>>,
 }
 
 impl BackgroundsLayer {
     pub(crate) fn new(
         view: Size,
-        tiles: Matrix<TileData>,
+        tiles: Rc<RefCell<Matrix<TileData>>>,
         sprites: Rc<SpriteSheet>,
-        revolver: Rc<TileResolver>,
         distance: Rc<Cell<f64>>,
     ) -> Self {
         let width = (view.width + 1) * TILE_SIZE; // FIXME hide camera buffer
@@ -37,6 +37,7 @@ impl BackgroundsLayer {
         let buffer = canvas(size);
         let buffer_context = context_2d(&buffer);
         let range = 0..=0;
+        let version = 0;
 
         Self {
             size,
@@ -44,23 +45,25 @@ impl BackgroundsLayer {
             buffer_context,
             tiles,
             sprites,
-            revolver,
             range,
             distance,
+            version,
         }
     }
 
     fn redraw(&mut self, range: RangeInclusive<usize>) {
-        if self.range != range {
+        let current_version = self.tiles.borrow().version();
+        if self.range != range || self.version != current_version {
+            self.version = current_version;
             let width = self.size.width as f64;
             let height = self.size.height as f64;
 
             self.buffer_context.clear_rect(0., 0., width, height);
-            for (x, y, data) in self.tiles.iter() {
+            for (x, y, data) in self.tiles.borrow().iter() {
                 if range.contains(&x) {
                     self.sprites.draw_tile(
                         &self.buffer_context,
-                        data.sprite,
+                        data.sprite(),
                         (x - *range.start()) as f64,
                         y as f64,
                     );
@@ -75,7 +78,7 @@ impl Drawable for BackgroundsLayer {
     fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
         let (cam_x, cam_y) = camera.position();
         let draw_width = camera.width() as usize;
-        let draw_from = self.revolver.to_index(cam_x) as usize;
+        let draw_from = TileResolver::index(TILE_SIZE, cam_x) as usize;
         let draw_to = draw_from + draw_width as usize;
         let range = draw_from..=draw_to;
 
@@ -91,8 +94,8 @@ impl Drawable for BackgroundsLayer {
         let distance = self.distance.get();
         let direction = Direction::Right;
         let tile_size = self.sprites.tile_size();
-        for (x, y, data) in self.tiles.iter() {
-            if let Some(animation) = data.animation {
+        for (x, y, data) in self.tiles.borrow().iter() {
+            if let Some(animation) = data.animation() {
                 if range.contains(&x) {
                     let ax = (x - *range.start()) * tile_size.width as usize;
                     let ay = y * tile_size.height as usize;
