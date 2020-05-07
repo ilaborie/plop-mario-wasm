@@ -3,6 +3,7 @@ use crate::audio::sounds::{AudioBoard, Fx};
 use crate::entity::bullet::BulletEntity;
 use crate::entity::cannon::CannonEntity;
 use crate::entity::entity_drawable::DrawableEntity;
+use crate::entity::events::{EntityEvent, EventBuffer};
 use crate::entity::goomba::GoombaEntity;
 use crate::entity::koopa::KoopaEntity;
 use crate::entity::traits::physics::Physics;
@@ -36,6 +37,7 @@ pub fn create_mobs(
     param: &MobsDefault,
     position: Position,
     physics: Physics,
+    event_buffer: Rc<RefCell<EventBuffer>>,
     audio: Option<Rc<AudioBoard>>,
 ) -> Rc<RefCell<dyn DrawableEntity>> {
     let bounding_box = param
@@ -43,7 +45,7 @@ pub fn create_mobs(
         .map(|r| BBox::new(r.x as f64, r.y as f64, r.size()))
         .unwrap_or_else(|| BBox::new(0., 0., param.size));
 
-    let mut entity = Entity::new(id, bounding_box, param.size, audio);
+    let mut entity = Entity::new(id, bounding_box, param.size, event_buffer, audio);
     entity.dx = param.speed;
     entity.x = position.x();
     entity.y = position.y();
@@ -86,6 +88,7 @@ pub type EntityToCreate = (String, Rc<RefCell<dyn DrawableEntity>>);
 pub struct Entity {
     pub(crate) id: String,
     traits: Vec<Rc<RefCell<dyn EntityTrait>>>,
+    event_buffer: Rc<RefCell<EventBuffer>>,
 
     // Lifetimes
     lifetime: f64,
@@ -120,6 +123,7 @@ impl Entity {
         id: String,
         bounding_box: BBox,
         size: Size,
+        event_buffer: Rc<RefCell<EventBuffer>>,
         audio_board: Option<Rc<AudioBoard>>,
     ) -> Self {
         let traits = vec![];
@@ -136,6 +140,7 @@ impl Entity {
 
         Entity {
             id,
+            event_buffer,
             traits,
             lifetime,
             living,
@@ -151,6 +156,10 @@ impl Entity {
             sounds,
             creation,
         }
+    }
+    // Traits
+    fn add_trait(&mut self, t: Rc<RefCell<dyn EntityTrait>>) {
+        self.traits.push(t.clone());
     }
 
     // Lifetime
@@ -202,13 +211,6 @@ impl Entity {
     pub fn living(&self) -> Living {
         self.living
     }
-    fn kill(&mut self, dx: f64, dy: f64) {
-        self.queue.push(Box::new(move |mut e| {
-            e.living = Living::Dead;
-            e.dx = dx;
-            e.dy = dy;
-        }))
-    }
     fn remove(&mut self) {
         log(&format!("Remove {}", self.id));
         self.living = Living::NoExistence;
@@ -223,10 +225,10 @@ impl Entity {
         self.features.contains(&feature)
     }
     fn is_stomper(&self) -> bool {
-        self.is(EntityFeature::Stomper)
+        self.is(EntityFeature::Stomper) && self.living == Living::Alive
     }
     fn is_killable(&self) -> bool {
-        self.is(EntityFeature::Killable)
+        self.is(EntityFeature::Killable) && self.living == Living::Alive
     }
 
     // Tasks
@@ -258,6 +260,38 @@ impl Entity {
 
 impl Debug for Entity {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "[{}] traits: {:?}", self.id, self.traits)
+        write!(f, "{}", self.id)
     }
+}
+
+pub fn finalize(event_buffer: Rc<RefCell<EventBuffer>>, entity: Rc<RefCell<Entity>>) {
+    entity.borrow_mut().finalize();
+
+    let id = entity.borrow().id.clone();
+
+    // Events
+    let e = entity.clone();
+    let traits = entity.borrow().traits.clone();
+    event_buffer.borrow().process(
+        id.as_str(),
+        Box::new(move |event| {
+            for t in traits.iter() {
+                // log(&format!("<{:?}> on {:?}", event, t.borrow().name()));
+                if let Ok(mut t) = t.try_borrow_mut() {
+                    match event {
+                        EntityEvent::Stomper(_) => t.on_stomper(e.clone()),
+                        EntityEvent::Stomped(_) => t.on_stomped(e.clone()),
+                        EntityEvent::Killer(_) => t.on_killer(e.clone()),
+                        EntityEvent::Killed(_) => t.on_killed(e.clone()),
+                    }
+                } else {
+                    log(&format!(
+                        "Cannot process events for {} {:?}",
+                        t.borrow().name(),
+                        t
+                    ));
+                }
+            }
+        }),
+    );
 }

@@ -1,6 +1,6 @@
 use crate::assets::config::JumpingDefault;
 use crate::audio::sounds::Fx;
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
 use crate::game::GameContext;
@@ -88,7 +88,7 @@ impl EntityTrait for Jump {
         &mut self,
         us: Rc<RefCell<Entity>>,
         them: Rc<RefCell<Entity>>,
-        _event_emitter: Rc<RefCell<EventEmitter>>,
+        _event_emitter: Rc<RefCell<EventBuffer>>,
     ) {
         let stomper = us.borrow().is_stomper();
         let killable = them.borrow().is_killable();

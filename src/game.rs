@@ -1,4 +1,4 @@
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::player_env::PlayerEnv;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -7,7 +7,7 @@ use web_sys::AudioContext;
 pub struct GameContext {
     audio_context: Rc<AudioContext>,
     player_env: Rc<RefCell<PlayerEnv>>,
-    event_emitter: Rc<RefCell<EventEmitter>>,
+    event_buffer: Rc<RefCell<EventBuffer>>,
     dt: f64,
 }
 
@@ -15,14 +15,14 @@ pub struct GameContext {
 impl GameContext {
     pub fn new(
         audio_context: Rc<AudioContext>,
-        event_emitter: Rc<RefCell<EventEmitter>>,
+        event_buffer: Rc<RefCell<EventBuffer>>,
         player_env: Rc<RefCell<PlayerEnv>>,
         dt: f64,
     ) -> Self {
         Self {
             audio_context,
             player_env,
-            event_emitter,
+            event_buffer,
             dt,
         }
     }
@@ -31,8 +31,8 @@ impl GameContext {
         self.dt
     }
 
-    pub fn emitter(&self) -> Rc<RefCell<EventEmitter>> {
-        self.event_emitter.clone()
+    pub fn emitter(&self) -> Rc<RefCell<EventBuffer>> {
+        self.event_buffer.clone()
     }
 
     pub fn player_env(&self) -> Rc<RefCell<PlayerEnv>> {

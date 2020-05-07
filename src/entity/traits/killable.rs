@@ -27,6 +27,11 @@ impl EntityTrait for Killable {
     fn name(&self) -> &str {
         "killable"
     }
+
+    fn on_killed(&mut self, entity: Rc<RefCell<Entity>>) {
+        entity.borrow_mut().living = Living::Dead;
+    }
+
     fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
         let alive = entity.borrow().living == Living::Alive;
         let dead = entity.borrow().living == Living::Dead;

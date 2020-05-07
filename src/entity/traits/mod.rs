@@ -1,4 +1,4 @@
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::{Entity, ObstructionSide};
 use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
@@ -16,6 +16,7 @@ pub mod jump;
 pub mod killable;
 pub mod koopa_behavior;
 pub mod physics;
+pub mod player;
 pub mod player_controller;
 pub mod solid;
 pub mod stomper;
@@ -24,13 +25,19 @@ pub mod walk;
 
 pub trait EntityTrait {
     fn name(&self) -> &str;
+
+    fn on_stomper(&mut self, _entity: Rc<RefCell<Entity>>) {}
+    fn on_stomped(&mut self, _entity: Rc<RefCell<Entity>>) {}
+    fn on_killer(&mut self, _entity: Rc<RefCell<Entity>>) {}
+    fn on_killed(&mut self, _entity: Rc<RefCell<Entity>>) {}
+
     fn update(&mut self, _entity: Rc<RefCell<Entity>>, _context: &GameContext) {}
     fn obstruct(&mut self, _entity: Rc<RefCell<Entity>>, _side: ObstructionSide, _rect: BBox) {}
     fn collides(
         &mut self,
         _us: Rc<RefCell<Entity>>,
         _them: Rc<RefCell<Entity>>,
-        _event_emitter: Rc<RefCell<EventEmitter>>,
+        _event_emitter: Rc<RefCell<EventBuffer>>,
     ) {
     }
 }
@@ -66,12 +73,12 @@ pub fn obstruct(entity: Rc<RefCell<Entity>>, side: ObstructionSide, rect: BBox) 
 pub fn collides(
     us: Rc<RefCell<Entity>>,
     them: Rc<RefCell<Entity>>,
-    event_emitter: Rc<RefCell<EventEmitter>>,
+    event_buffer: Rc<RefCell<EventBuffer>>,
 ) {
     let traits = us.borrow().traits.clone();
 
     for t in traits.iter() {
         t.borrow_mut()
-            .collides(us.clone(), them.clone(), event_emitter.clone());
+            .collides(us.clone(), them.clone(), event_buffer.clone());
     }
 }

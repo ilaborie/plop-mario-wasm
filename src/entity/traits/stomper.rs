@@ -1,24 +1,18 @@
-use crate::audio::sounds::Fx;
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
-use crate::game::GameContext;
 use core::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Default)]
 pub struct Stomper {
-    bounce_speed: f64,
     queue_bounce: bool,
 }
 
 impl Stomper {
-    pub fn new(bounce_speed: f64) -> Self {
+    pub fn new() -> Self {
         let queue_bounce = false;
-        Stomper {
-            bounce_speed,
-            queue_bounce,
-        }
+        Stomper { queue_bounce }
     }
 }
 
@@ -27,23 +21,11 @@ impl EntityTrait for Stomper {
         "stomper"
     }
 
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
-        if self.queue_bounce {
-            entity.borrow_mut().play_fx(Fx::Stomp);
-            self.queue_bounce = false;
-            let dt = context.dt();
-            let speed = self.bounce_speed;
-            entity.borrow_mut().queue.push(Box::new(move |e| {
-                e.dy -= speed * dt;
-            }));
-        }
-    }
-
     fn collides(
         &mut self,
         us: Rc<RefCell<Entity>>,
         them: Rc<RefCell<Entity>>,
-        event_emitter: Rc<RefCell<EventEmitter>>,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
         if us.borrow().living != Living::Alive {
             return;
@@ -56,7 +38,7 @@ impl EntityTrait for Stomper {
                 let top = them.borrow().collision_box().top();
                 let height = us.borrow().size.height as f64;
                 us.borrow_mut().y = top - height;
-                event_emitter.borrow().stomp(us, them);
+                event_buffer.borrow_mut().stomp(us, them);
                 self.queue_bounce = true;
             }
         }

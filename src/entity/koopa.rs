@@ -27,11 +27,11 @@ impl KoopaEntity {
         let killable = Rc::new(RefCell::new(Killable::new(solid.clone())));
         let physics = Rc::new(RefCell::new(physics));
 
-        entity.traits.push(solid);
-        entity.traits.push(walk);
-        entity.traits.push(behavior.clone());
-        entity.traits.push(killable);
-        entity.traits.push(physics);
+        entity.add_trait(solid);
+        entity.add_trait(walk);
+        entity.add_trait(behavior.clone());
+        entity.add_trait(killable);
+        entity.add_trait(physics);
 
         // Features
         entity.features.push(EntityFeature::Killable);

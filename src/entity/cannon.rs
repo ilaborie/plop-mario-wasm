@@ -19,7 +19,9 @@ impl CannonEntity {
         // Traits
         let emitter = Emitter::new(5.);
         let emitter = Rc::new(RefCell::new(emitter));
-        entity.traits.push(emitter.clone());
+        entity.add_trait(emitter.clone());
+
+        let event_buffer = entity.event_buffer.clone();
 
         let entity = Rc::new(RefCell::new(entity));
         let result = Self { entity };
@@ -40,7 +42,7 @@ impl CannonEntity {
                 let id = format!("Bullet #{}", count.get());
                 let size = source.borrow().size;
                 let bounding_box = BBox::new(0., 0., size);
-                let mut entity = Entity::new(id, bounding_box, size, None);
+                let mut entity = Entity::new(id, bounding_box, size, event_buffer.clone(), None);
                 entity.dx = 80. * delta_x.signum();
                 entity.x = x;
                 entity.y = y;

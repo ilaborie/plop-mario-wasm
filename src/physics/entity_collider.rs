@@ -1,4 +1,4 @@
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::traits::collides;
 use crate::entity::Entity;
 use std::cell::RefCell;
@@ -11,9 +11,11 @@ pub struct EntityCollider {
 
 impl EntityCollider {
     pub fn add_entity(&mut self, entity: Rc<RefCell<Entity>>) {
+        // log(&format!("Add entity: {:?}", entity));
         self.entities.push(entity);
     }
-    pub fn check(&self, subject: Rc<RefCell<Entity>>, event_emitter: Rc<RefCell<EventEmitter>>) {
+
+    pub fn check(&self, subject: Rc<RefCell<Entity>>, event_buffer: Rc<RefCell<EventBuffer>>) {
         let subject_box = subject.borrow().collision_box();
 
         for entity in self.entities.iter() {
@@ -23,9 +25,9 @@ impl EntityCollider {
             let entity_box = entity.borrow().collision_box();
 
             if subject_box.overlaps(entity_box) {
-                // collision
-                collides(subject.clone(), entity.clone(), event_emitter.clone());
-                collides(entity.clone(), subject.clone(), event_emitter.clone());
+                collides(subject.clone(), entity.clone(), event_buffer.clone());
+                // FIXME why it's not working when killing bullet ?
+                collides(entity.clone(), subject.clone(), event_buffer.clone());
             }
         }
     }

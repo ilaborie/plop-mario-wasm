@@ -18,14 +18,14 @@ impl BulletEntity {
     pub fn new(mut entity: Entity) -> Self {
         // Traits
         let solid = Rc::new(RefCell::new(Solid::new()));
-        let behavior = BulletBehavior::default();
+        let behavior = BulletBehavior::new(solid.clone());
         let behavior = Rc::new(RefCell::new(behavior));
         let killable = Rc::new(RefCell::new(Killable::new(solid)));
         let velocity = Rc::new(RefCell::new(Velocity::default()));
 
-        entity.traits.push(velocity);
-        entity.traits.push(killable);
-        entity.traits.push(behavior);
+        entity.add_trait(velocity);
+        entity.add_trait(killable);
+        entity.add_trait(behavior);
 
         // Note: need to check X/Y if we want to stop on wall (see Physics)
 

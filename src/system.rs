@@ -1,7 +1,7 @@
 use crate::assets::config::Configuration;
 use crate::assets::TILE_SIZE;
 use crate::camera::Camera;
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::player_env::PlayerEnv;
 use crate::game::GameContext;
 use crate::input::Keyboard;
@@ -17,7 +17,7 @@ pub struct System {
     camera: Camera,
     player: Rc<RefCell<PlayerEnv>>,
     audio_context: Rc<AudioContext>,
-    event_emitter: Rc<RefCell<EventEmitter>>,
+    event_buffer: Rc<RefCell<EventBuffer>>,
 }
 
 impl System {
@@ -29,6 +29,9 @@ impl System {
         let camera_size = config.view * TILE_SIZE;
         let camera = Camera::new(camera_size);
 
+        // Events
+        let event_buffer: Rc<RefCell<EventBuffer>> = Rc::default();
+
         let sprite_sheets = vec![
             String::from(player_name),
             String::from("bullet"),
@@ -36,13 +39,11 @@ impl System {
             String::from("goomba"),
             String::from("koopa"),
         ];
-        let mut level = Level::load(config.clone(), level, sprite_sheets).await?;
-
-        // Events
-        let event_emitter: Rc<RefCell<EventEmitter>> = Rc::default();
+        let mut level =
+            Level::load(config.clone(), level, sprite_sheets, event_buffer.clone()).await?;
 
         let position = config.player.position;
-        let player = level.create_player(player_name, position, event_emitter.clone());
+        let player = level.create_player(player_name, position, event_buffer.clone());
 
         // Keyboard
         let mut keyboard = Keyboard::default();
@@ -61,7 +62,7 @@ impl System {
             player,
             camera,
             audio_context,
-            event_emitter,
+            event_buffer,
         };
         Ok(result)
     }
@@ -77,11 +78,14 @@ impl System {
     pub fn update(&mut self, dt: f64) {
         let context = GameContext::new(
             self.audio_context.clone(),
-            self.event_emitter.clone(),
+            self.event_buffer.clone(),
             self.player.clone(),
             dt,
         );
+
         self.level.borrow_mut().update(&context);
+
+        self.event_buffer.borrow_mut().clear();
 
         // Move camera
         let (x, _y) = self.player.borrow().position();

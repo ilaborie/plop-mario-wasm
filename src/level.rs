@@ -6,12 +6,12 @@ use crate::audio::sounds::AudioBoard;
 use crate::audio::MusicController;
 use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::player::PlayerEntity;
 use crate::entity::player_env::PlayerEnv;
 use crate::entity::traits::physics::Physics;
 use crate::entity::traits::update;
-use crate::entity::{create_mobs, Entity, EntityFeature, EntityToCreate, Living};
+use crate::entity::{create_mobs, finalize, Entity, EntityFeature, EntityToCreate, Living};
 use crate::game::GameContext;
 use crate::layers::backgrounds::BackgroundsLayer;
 use crate::layers::collision::CollisionLayer;
@@ -52,6 +52,7 @@ impl Level {
         config: Configuration,
         level_name: &str,
         loading_sprites: Vec<String>,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) -> Result<Self, JsValue> {
         let name = String::from(level_name);
         let level_def = LevelDefinition::load(level_name).await?;
@@ -116,7 +117,11 @@ impl Level {
         };
 
         for entity_def in level_def.entities() {
-            result.create_mobs(entity_def.name(), entity_def.position());
+            result.create_mobs(
+                entity_def.name(),
+                entity_def.position(),
+                event_buffer.clone(),
+            );
         }
 
         Ok(result)
@@ -130,7 +135,7 @@ impl Level {
         &mut self,
         player_name: &str,
         position: Position,
-        event_emitter: Rc<RefCell<EventEmitter>>,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) -> Rc<RefCell<PlayerEnv>> {
         let physics = Physics::new(self.gravity, self.tile_collider.clone());
 
@@ -141,20 +146,26 @@ impl Level {
             position,
             &self.config.player,
             physics,
+            event_buffer.clone(),
             audio,
         );
         let player = Rc::new(RefCell::new(player_entity));
         self.add_entity(player_name, player.clone());
 
         // Controller
-        let player_env = PlayerEnv::new(player, event_emitter);
+        let player_env = PlayerEnv::new(player, event_buffer);
         let env = Rc::new(RefCell::new(player_env));
         self.entities.push(env.clone());
 
         env
     }
 
-    pub fn create_mobs(&mut self, mob: &str, position: Position) -> Rc<RefCell<Entity>> {
+    pub fn create_mobs(
+        &mut self,
+        mob: &str,
+        position: Position,
+        event_buffer: Rc<RefCell<EventBuffer>>,
+    ) -> Rc<RefCell<Entity>> {
         let audio = self.audio_boards.get(mob).cloned();
 
         let mobs_default = self
@@ -166,7 +177,15 @@ impl Level {
         let id = format!("{} #{}", mob, self.next_mob);
         let physics = Physics::new(self.gravity, self.tile_collider.clone());
 
-        let entity = create_mobs(id, mob, mobs_default, position, physics, audio);
+        let entity = create_mobs(
+            id,
+            mob,
+            mobs_default,
+            position,
+            physics,
+            event_buffer,
+            audio,
+        );
         let result = entity.borrow().entity();
         self.add_entity(mob, entity.clone());
         result
@@ -230,7 +249,7 @@ impl Level {
         self.entities_updates(context);
         self.entities_collision(context.emitter());
         self.entities_sounds(context.audio_context());
-        self.entities_tasks();
+        self.entities_tasks(context.emitter());
         self.remove_entities();
         self.respwan_entities();
 
@@ -248,16 +267,16 @@ impl Level {
         }
     }
 
-    fn entities_collision(&mut self, event_emitter: Rc<RefCell<EventEmitter>>) {
+    fn entities_collision(&mut self, event_emitter: Rc<RefCell<EventBuffer>>) {
         for entity in self.entities.iter() {
             self.entity_collider
                 .check(entity.borrow().entity(), event_emitter.clone());
         }
     }
 
-    fn entities_tasks(&mut self) {
+    fn entities_tasks(&self, event_buffer: Rc<RefCell<EventBuffer>>) {
         for entity in self.entities.iter() {
-            entity.borrow().entity().borrow_mut().finalize();
+            finalize(event_buffer.clone(), entity.borrow().entity());
         }
     }
 

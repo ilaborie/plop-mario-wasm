@@ -1,4 +1,4 @@
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::traits::walk::Walk;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
@@ -19,24 +19,26 @@ impl EntityTrait for GoombaBehavior {
     fn name(&self) -> &str {
         "goomba"
     }
+
+    fn on_killed(&mut self, entity: Rc<RefCell<Entity>>) {
+        self.walk.borrow_mut().disable();
+        entity.borrow_mut().dx = 0.;
+        entity.borrow_mut().dy = 0.;
+    }
+
     fn collides(
         &mut self,
         us: Rc<RefCell<Entity>>,
         them: Rc<RefCell<Entity>>,
-        event_emitter: Rc<RefCell<EventEmitter>>,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
-        if them.borrow().living != Living::Alive {
-            return;
-        }
-        if them.borrow().is_stomper() && them.borrow().living == Living::Alive {
+        if them.borrow().is_stomper() && us.borrow().living == Living::Alive {
             if them.borrow().dy > us.borrow().dy {
                 // Dead
-                us.borrow_mut().dx = 0.;
-                us.borrow_mut().dy = -0.;
-                event_emitter.borrow().kill(them, us, 0., 0.);
-                self.walk.borrow_mut().disable();
+                us.borrow_mut().living = Living::Dead;
+                event_buffer.borrow_mut().kill(them, us);
             } else {
-                event_emitter.borrow().kill(us, them, 0., -300.);
+                event_buffer.borrow_mut().kill(us, them);
             }
         }
     }

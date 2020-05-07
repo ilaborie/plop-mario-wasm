@@ -1,33 +1,45 @@
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
+use crate::entity::traits::solid::Solid;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
 use core::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Default)]
-pub struct BulletBehavior {}
+pub struct BulletBehavior {
+    solid: Rc<RefCell<Solid>>,
+}
+
+impl BulletBehavior {
+    pub fn new(solid: Rc<RefCell<Solid>>) -> Self {
+        Self { solid }
+    }
+}
 
 impl EntityTrait for BulletBehavior {
     fn name(&self) -> &str {
         "bullet"
     }
 
+    fn on_killed(&mut self, entity: Rc<RefCell<Entity>>) {
+        self.solid.borrow_mut().set_obstructs(false);
+        entity.borrow_mut().dy += 200.;
+    }
+
     fn collides(
         &mut self,
         us: Rc<RefCell<Entity>>,
         them: Rc<RefCell<Entity>>,
-        event_emitter: Rc<RefCell<EventEmitter>>,
+        event_emitter: Rc<RefCell<EventBuffer>>,
     ) {
-        if them.borrow().living != Living::Alive {
+        if !them.borrow().is_stomper() {
             return;
         }
-        if them.borrow().is_stomper() && them.borrow().living == Living::Alive {
-            if them.borrow().dy > us.borrow().dy {
-                // Dead
-                event_emitter.borrow().kill(them, us, 0., 200.);
-            } else {
-                event_emitter.borrow().kill(us, them, 0., -300.);
-            }
+
+        if them.borrow().dy > us.borrow().dy && us.borrow().living == Living::Alive {
+            us.borrow_mut().living = Living::Dead;
+            event_emitter.borrow_mut().kill(them, us);
+        } else if them.borrow().is_killable() {
+            event_emitter.borrow_mut().kill(us, them);
         }
     }
 }

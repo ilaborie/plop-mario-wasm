@@ -1,4 +1,5 @@
 use crate::assets::config::MotionDefault;
+use crate::audio::sounds::Fx;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living, ObstructionSide};
 use crate::game::GameContext;
@@ -106,6 +107,16 @@ impl Go {
 impl EntityTrait for Go {
     fn name(&self) -> &str {
         "go"
+    }
+
+    fn on_stomper(&mut self, entity: Rc<RefCell<Entity>>) {
+        entity.borrow_mut().play_fx(Fx::Stomp);
+        entity.borrow_mut().dy -= 150.;
+    }
+
+    fn on_killed(&mut self, entity: Rc<RefCell<Entity>>) {
+        entity.borrow_mut().dx = 100.;
+        entity.borrow_mut().dy = -200.;
     }
 
     fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {

@@ -3,10 +3,12 @@ use crate::assets::sprites::{AnimationName, Sprite};
 use crate::audio::sounds::AudioBoard;
 use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
+use crate::entity::events::EventBuffer;
 use crate::entity::traits::go::Go;
 use crate::entity::traits::jump::Jump;
 use crate::entity::traits::killable::Killable;
 use crate::entity::traits::physics::Physics;
+use crate::entity::traits::player::PlayerTrait;
 use crate::entity::traits::solid::Solid;
 use crate::entity::traits::stomper::Stomper;
 use crate::entity::{Entity, EntityFeature, Living};
@@ -19,6 +21,7 @@ pub struct PlayerEntity {
     entity: Rc<RefCell<Entity>>,
     go: Rc<RefCell<Go>>,
     jump: Rc<RefCell<Jump>>,
+    player_trait: Rc<RefCell<PlayerTrait>>,
 }
 
 impl PlayerEntity {
@@ -27,11 +30,12 @@ impl PlayerEntity {
         position: Position,
         param: &PlayerDefault,
         physics: Physics,
+        event_buffer: Rc<RefCell<EventBuffer>>,
         audio: Option<Rc<AudioBoard>>,
     ) -> Self {
         let size = param.size;
         let bounding_box = BBox::new(0., 0., size);
-        let mut entity = Entity::new(id, bounding_box, size, audio);
+        let mut entity = Entity::new(id, bounding_box, size, event_buffer, audio);
         entity.x = position.x();
         entity.y = position.y();
 
@@ -39,23 +43,35 @@ impl PlayerEntity {
         let solid = Rc::new(RefCell::new(Solid::new()));
         let go = Rc::new(RefCell::new(Go::new(param.motion)));
         let jump = Rc::new(RefCell::new(Jump::new(param.jumping)));
-        let stomper = Rc::new(RefCell::new(Stomper::new(param.stomp)));
+        let stomper = Rc::new(RefCell::new(Stomper::new()));
         let killable = Rc::new(RefCell::new(Killable::new(solid.clone())));
         let physics = Rc::new(RefCell::new(physics));
+        let player_trait = PlayerTrait::default();
+        let player_trait = Rc::new(RefCell::new(player_trait));
 
-        entity.traits.push(solid);
-        entity.traits.push(go.clone());
-        entity.traits.push(jump.clone());
-        entity.traits.push(stomper);
-        entity.traits.push(killable);
-        entity.traits.push(physics);
+        entity.add_trait(solid);
+        entity.add_trait(go.clone());
+        entity.add_trait(jump.clone());
+        entity.add_trait(stomper);
+        entity.add_trait(killable);
+        entity.add_trait(physics);
+        entity.add_trait(player_trait.clone());
 
         // Features
         entity.features.push(EntityFeature::Stomper);
         entity.features.push(EntityFeature::Player);
 
         let entity = Rc::new(RefCell::new(entity));
-        Self { entity, go, jump }
+        Self {
+            entity,
+            go,
+            jump,
+            player_trait,
+        }
+    }
+
+    pub fn player_trait(&self) -> Rc<RefCell<PlayerTrait>> {
+        self.player_trait.clone()
     }
 
     pub fn jump_start(&mut self) {

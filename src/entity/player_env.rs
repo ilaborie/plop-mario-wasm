@@ -1,5 +1,5 @@
 use crate::entity::entity_drawable::DrawableEntity;
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::player::PlayerEntity;
 use crate::entity::traits::player_controller::PlayerController;
 use crate::entity::{Entity, Living};
@@ -13,58 +13,32 @@ pub struct PlayerEnv {
     entity: Rc<RefCell<Entity>>,
     player: Rc<RefCell<PlayerEntity>>,
     time: Rc<Cell<f64>>,
-    coins: Rc<Cell<u32>>,
-    score: Rc<Cell<u32>>,
 }
 
 impl PlayerEnv {
-    pub fn new(
-        player: Rc<RefCell<PlayerEntity>>,
-        event_emitter: Rc<RefCell<EventEmitter>>,
-    ) -> Self {
+    pub fn new(player: Rc<RefCell<PlayerEntity>>, event_buffer: Rc<RefCell<EventBuffer>>) -> Self {
         let id = String::from("PlayerController");
         let size = Size::default();
         let bbox = BBox::new(0., 0., size);
-        let mut entity = Entity::new(id, bbox, size, None);
+        let mut entity = Entity::new(id, bbox, size, event_buffer, None);
 
         let mut checkpoint = Position::default();
         checkpoint.set_x(8.);
         let checkpoint = Rc::new(RefCell::new(checkpoint));
 
         let time = Rc::new(Cell::new(300.));
-        let coins = Rc::new(Cell::new(0));
-        let score = Rc::new(Cell::new(0));
 
         // Traits
         let controller =
             PlayerController::new(player.clone().borrow().entity(), time.clone(), checkpoint);
         let controller = Rc::new(RefCell::new(controller));
-        entity.traits.push(controller);
-
-        // Events
-        let sc = score.clone();
-        event_emitter.borrow_mut().on_stomp(
-            player.borrow().id(),
-            Box::new(move |_stomped| {
-                sc.set(sc.get() + 20);
-            }),
-        );
-
-        let sc = score.clone();
-        event_emitter.borrow_mut().on_kill(
-            player.borrow().id(),
-            Box::new(move |_killed| {
-                sc.set(sc.get() + 80);
-            }),
-        );
+        entity.add_trait(controller);
 
         let entity = Rc::new(RefCell::new(entity));
         Self {
             player,
             entity,
             time,
-            coins,
-            score,
         }
     }
 
@@ -73,13 +47,13 @@ impl PlayerEnv {
         self.player.borrow().id().to_uppercase()
     }
     pub fn score(&self) -> Rc<Cell<u32>> {
-        self.score.clone()
+        self.player.borrow().player_trait().borrow().score()
     }
     pub fn time(&self) -> Rc<Cell<f64>> {
         self.time.clone()
     }
     pub fn coins(&self) -> Rc<Cell<u32>> {
-        self.coins.clone()
+        self.player.borrow().player_trait().borrow().coins()
     }
     pub fn position(&self) -> (f64, f64) {
         self.player.borrow().position()

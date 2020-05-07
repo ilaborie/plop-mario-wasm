@@ -1,4 +1,4 @@
-use crate::entity::events::EventEmitter;
+use crate::entity::events::EventBuffer;
 use crate::entity::traits::walk::Walk;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
@@ -80,14 +80,13 @@ impl KoopaBehavior {
         &mut self,
         us: Rc<RefCell<Entity>>,
         them: Rc<RefCell<Entity>>,
-        event_emitter: Rc<RefCell<EventEmitter>>,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
         match self.state {
             KoopaState::Walking => self.hide(us),
             KoopaState::Hiding => {
-                us.borrow_mut().dx = 100.;
-                us.borrow_mut().dy = -200.;
-                event_emitter.borrow().kill(them, us, 100., -200.);
+                us.borrow_mut().living = Living::Dead;
+                event_buffer.borrow_mut().kill(them, us);
             }
             KoopaState::Panic => {
                 self.hide(us);
@@ -99,12 +98,12 @@ impl KoopaBehavior {
         &mut self,
         us: Rc<RefCell<Entity>>,
         them: Rc<RefCell<Entity>>,
-        event_emitter: Rc<RefCell<EventEmitter>>,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
         match self.state {
             KoopaState::Walking => {
                 // Killer
-                event_emitter.borrow().kill(us, them, 0., -300.);
+                event_buffer.borrow_mut().kill(us, them);
             }
             KoopaState::Hiding => {
                 self.panic(us, them);
@@ -115,9 +114,7 @@ impl KoopaBehavior {
                 let impact_dir = delta.signum();
                 if travel_dir != 0. && (travel_dir - impact_dir).abs() > 0. {
                     // Killer
-                    event_emitter.borrow().kill(us, them, 0., -300.);
-                } else {
-                    // FIXME need to move us is the right x
+                    event_buffer.borrow_mut().kill(us, them);
                 }
             }
         };
@@ -128,6 +125,12 @@ impl EntityTrait for KoopaBehavior {
     fn name(&self) -> &str {
         "koopa"
     }
+
+    fn on_killed(&mut self, entity: Rc<RefCell<Entity>>) {
+        entity.borrow_mut().dx = 100.;
+        entity.borrow_mut().dy = -200.;
+    }
+
     fn update(&mut self, us: Rc<RefCell<Entity>>, context: &GameContext) {
         if self.state == KoopaState::Hiding {
             self.hide_time += context.dt();
@@ -141,19 +144,16 @@ impl EntityTrait for KoopaBehavior {
         &mut self,
         us: Rc<RefCell<Entity>>,
         them: Rc<RefCell<Entity>>,
-        event_emitter: Rc<RefCell<EventEmitter>>,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
-        if them.borrow().living != Living::Alive {
-            return;
-        }
         if us.borrow().living != Living::Alive {
             return;
         }
         if them.borrow().is_stomper() {
             if them.borrow().dy > us.borrow().dy {
-                self.handle_stomp(us, them, event_emitter);
+                self.handle_stomp(us, them, event_buffer);
             } else {
-                self.handle_nudge(us, them, event_emitter);
+                self.handle_nudge(us, them, event_buffer);
             }
         }
     }
