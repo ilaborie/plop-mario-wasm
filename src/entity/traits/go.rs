@@ -111,7 +111,7 @@ impl EntityTrait for Go {
 
     fn on_stomper(&mut self, entity: Rc<RefCell<Entity>>) {
         entity.borrow_mut().play_fx(Fx::Stomp);
-        entity.borrow_mut().dy -= 150.;
+        entity.borrow_mut().dy -= 500.;
     }
 
     fn on_killed(&mut self, entity: Rc<RefCell<Entity>>) {

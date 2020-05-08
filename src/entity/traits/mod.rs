@@ -15,6 +15,7 @@ pub mod goomba_behavior;
 pub mod jump;
 pub mod killable;
 pub mod koopa_behavior;
+pub mod level_timer;
 pub mod physics;
 pub mod player;
 pub mod player_controller;

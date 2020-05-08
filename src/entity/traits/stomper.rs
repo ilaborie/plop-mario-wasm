@@ -31,13 +31,9 @@ impl EntityTrait for Stomper {
             return;
         }
 
-        let killable = them.borrow().is_killable();
-        if killable {
+        if them.borrow().is_killable() {
             let dy = us.borrow().dy;
             if dy > them.borrow().dy {
-                let top = them.borrow().collision_box().top();
-                let height = us.borrow().size.height as f64;
-                us.borrow_mut().y = top - height;
                 event_buffer.borrow_mut().stomp(us, them);
                 self.queue_bounce = true;
             }

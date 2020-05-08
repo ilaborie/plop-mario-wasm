@@ -55,6 +55,7 @@ impl EntityTrait for Jump {
     fn name(&self) -> &str {
         "jump"
     }
+
     fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
         if self.request_time > 0. {
             if self.ready {

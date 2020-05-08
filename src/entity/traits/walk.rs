@@ -33,6 +33,11 @@ impl EntityTrait for Walk {
     fn name(&self) -> &str {
         "walk"
     }
+
+    fn on_stomped(&mut self, _entity: Rc<RefCell<Entity>>) {
+        self.enable = false;
+    }
+
     fn update(&mut self, entity: Rc<RefCell<Entity>>, _context: &GameContext) {
         // Move X
         if self.enable {

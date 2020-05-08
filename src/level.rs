@@ -1,12 +1,12 @@
 use crate::assets::config::Configuration;
 use crate::assets::levels::LevelDefinition;
 use crate::assets::sprites::SpriteSheet;
-use crate::audio::musics::{MusicPlayer, Track};
+use crate::audio::musics::MusicPlayer;
 use crate::audio::sounds::AudioBoard;
 use crate::audio::MusicController;
 use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
-use crate::entity::events::EventBuffer;
+use crate::entity::events::{Event, EventBuffer};
 use crate::entity::player::PlayerEntity;
 use crate::entity::player_env::PlayerEnv;
 use crate::entity::traits::physics::Physics;
@@ -19,8 +19,9 @@ use crate::layers::entity::EntityLayer;
 use crate::layers::{Compositor, Drawable};
 use crate::physics::entity_collider::EntityCollider;
 use crate::physics::tile_collider::TileCollider;
-use crate::physics::GravityForce;
 use crate::physics::Position;
+use crate::physics::{GravityForce, Size};
+use crate::utils::log;
 use core::cell::RefCell;
 use core::fmt;
 use core::fmt::Formatter;
@@ -33,18 +34,20 @@ use web_sys::{AudioContext, CanvasRenderingContext2d};
 
 pub struct Level {
     name: String,
+    size: Size,
     config: Configuration,
     compositor: Compositor,
     entities: Vec<Rc<RefCell<dyn DrawableEntity>>>,
     respawn_entities: Vec<Rc<RefCell<dyn DrawableEntity>>>,
     tile_collider: Rc<RefCell<TileCollider>>,
     entity_collider: EntityCollider,
+    player_env: Option<Rc<RefCell<PlayerEnv>>>,
     gravity: GravityForce,
     distance: Rc<Cell<f64>>,
     next_mob: u32,
     spite_sheets: HashMap<String, Rc<SpriteSheet>>,
     audio_boards: HashMap<String, Rc<AudioBoard>>,
-    music_controller: MusicController,
+    music_controller: Rc<RefCell<MusicController>>,
 }
 
 impl Level {
@@ -57,9 +60,10 @@ impl Level {
         let name = String::from(level_name);
         let level_def = LevelDefinition::load(level_name).await?;
         let (matrix, bg_sprites, gravity) = level_def.build().await?;
+        let size = matrix.first().unwrap().borrow().size();
 
         let music_player = MusicPlayer::load_music(level_def.music_sheet()).await?;
-        let music_controller = MusicController::new(music_player);
+        let music_controller = Rc::new(RefCell::new(MusicController::new(music_player)));
 
         let gravity = GravityForce::new(gravity.unwrap_or(config.gravity));
         let entities = vec![];
@@ -100,8 +104,10 @@ impl Level {
             }
         }
 
+        let player_env = None;
         let mut result = Self {
             name,
+            size,
             config,
             compositor,
             entities,
@@ -109,6 +115,7 @@ impl Level {
             tile_collider,
             entity_collider,
             gravity,
+            player_env,
             distance,
             next_mob,
             spite_sheets,
@@ -127,8 +134,16 @@ impl Level {
         Ok(result)
     }
 
-    pub fn start(&self) {
-        self.music_controller.play(Track::Main);
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    pub fn size(&self) -> Size {
+        self.size
+    }
+
+    pub fn find_player(&self) -> Option<Rc<RefCell<PlayerEnv>>> {
+        self.player_env.clone()
     }
 
     pub fn create_player(
@@ -156,6 +171,9 @@ impl Level {
         let player_env = PlayerEnv::new(player, event_buffer);
         let env = Rc::new(RefCell::new(player_env));
         self.entities.push(env.clone());
+
+        //
+        self.player_env = Some(env.clone());
 
         env
     }
@@ -217,15 +235,15 @@ impl Level {
             let respawnable = entity.borrow().is(EntityFeature::Player);
             if removed && respawnable {
                 self.respawn_entities.push(entity.clone());
-            } else {
+            } else if removed {
+                self.entity_collider
+                    .remove_entity(entity.borrow().id().as_str());
             }
         }
+
         // Remove
-        self.entities.retain(|entity| {
-            let retain = entity.borrow().living() != Living::NoExistence;
-            if !retain {}
-            retain
-        });
+        self.entities
+            .retain(|entity| entity.borrow().living() != Living::NoExistence);
     }
 
     fn respwan_entities(&mut self) {
@@ -245,7 +263,6 @@ impl Level {
 
     pub fn update(&mut self, context: &GameContext) {
         // log(&format!("Entities: {:?}", self.entities));
-
         self.entities_updates(context);
         self.entities_collision(context.emitter());
         self.entities_sounds(context.audio_context());
@@ -259,6 +276,20 @@ impl Level {
 
         let dist = self.distance.get() + 1000. * context.dt();
         self.distance.set(dist);
+
+        // Level Events
+        context
+            .emitter()
+            .borrow()
+            .process_level(&|event| self.handle_level_event(event));
+    }
+
+    fn handle_level_event(&self, event: &Event) {
+        match event {
+            Event::TimeOk => self.music_controller.borrow().play_theme(),
+            Event::Hurry => self.music_controller.borrow().play_hurry(),
+            _ => log(&format!("Level event not handled: {:?}", event)),
+        }
     }
 
     fn entities_updates(&mut self, context: &GameContext) {
@@ -269,6 +300,7 @@ impl Level {
 
     fn entities_collision(&mut self, event_emitter: Rc<RefCell<EventBuffer>>) {
         for entity in self.entities.iter() {
+            // log(&format!("Check collision for {:?}", entity.borrow().id()));
             self.entity_collider
                 .check(entity.borrow().entity(), event_emitter.clone());
         }

@@ -8,6 +8,7 @@ use web_sys::{HtmlAudioElement, Request, Response};
 #[derive(Hash, Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Track {
     Main,
+    Hurry,
 }
 
 #[derive(Deserialize)]
@@ -18,6 +19,7 @@ struct MainDescription {
 #[derive(Deserialize)]
 struct MusicDescription {
     main: MainDescription,
+    hurry: MainDescription,
 }
 
 impl MusicDescription {
@@ -48,25 +50,32 @@ impl MusicPlayer {
         let desc = MusicDescription::load(name).await?;
 
         let mut result = Self::default();
-        result.add_track(Track::Main, desc.main.url.as_str());
+        result.add_track(Track::Main, desc.main.url.as_str(), true);
+        result.add_track(Track::Hurry, desc.hurry.url.as_str(), false);
 
         Ok(result)
     }
 
-    fn add_track(&mut self, track: Track, url: &str) {
+    fn add_track(&mut self, track: Track, url: &str, looping: bool) {
         let audio = HtmlAudioElement::new_with_src(url).unwrap();
-        audio.set_loop(true);
+        audio.set_loop(looping);
         audio.set_volume(0.5);
 
         self.tracks.insert(track, audio);
     }
 
-    pub fn play(&self, track: Track) {
-        let audio = self
+    pub fn play(&self, track: Track, speed: f64) -> &HtmlAudioElement {
+        for audio in self.tracks.values() {
+            audio.pause().unwrap();
+        }
+
+        let audio: &HtmlAudioElement = self
             .tracks
             .get(&track)
             .unwrap_or_else(|| panic!("Music track {:?} not found!", track));
-
         let _ = audio.play().unwrap();
+        audio.set_playback_rate(speed);
+
+        audio
     }
 }

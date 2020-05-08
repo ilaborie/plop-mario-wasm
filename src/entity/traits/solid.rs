@@ -23,6 +23,11 @@ impl EntityTrait for Solid {
     fn name(&self) -> &str {
         "solid"
     }
+
+    fn on_killed(&mut self, _entity: Rc<RefCell<Entity>>) {
+        self.obstructs = false;
+    }
+
     fn obstruct(&mut self, entity: Rc<RefCell<Entity>>, side: ObstructionSide, rect: BBox) {
         if !self.obstructs {
             return;

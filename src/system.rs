@@ -53,9 +53,6 @@ impl System {
         let audio_context = AudioContext::new().unwrap();
         let audio_context = Rc::new(audio_context);
 
-        // Level start
-        level.start();
-
         let level = Rc::new(RefCell::new(level));
         let result = Self {
             level,
@@ -69,6 +66,10 @@ impl System {
 
     pub fn player(&self) -> Rc<RefCell<PlayerEnv>> {
         self.player.clone()
+    }
+
+    pub fn level(&self) -> Rc<RefCell<Level>> {
+        self.level.clone()
     }
 
     pub fn draw(&mut self, context: &CanvasRenderingContext2d) {
@@ -88,9 +89,12 @@ impl System {
         self.event_buffer.borrow_mut().clear();
 
         // Move camera
+        let width = self.level.borrow().size().width - 16;
+        let max_x = (width * TILE_SIZE) as f64;
+
         let (x, _y) = self.player.borrow().position();
         let shift = (TILE_SIZE * 6) as f64;
-        let cam_x = (x - shift).max(0.);
+        let cam_x = (x - shift).max(0.).min(max_x);
         self.camera.set_x(cam_x);
     }
 }

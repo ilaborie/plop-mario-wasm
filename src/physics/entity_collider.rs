@@ -15,6 +15,11 @@ impl EntityCollider {
         self.entities.push(entity);
     }
 
+    pub fn remove_entity(&mut self, id: &str) {
+        // log(&format!("Remove entity: {}", id));
+        self.entities.retain(|e| e.borrow().id != id)
+    }
+
     pub fn check(&self, subject: Rc<RefCell<Entity>>, event_buffer: Rc<RefCell<EventBuffer>>) {
         let subject_box = subject.borrow().collision_box();
 
@@ -26,8 +31,6 @@ impl EntityCollider {
 
             if subject_box.overlaps(entity_box) {
                 collides(subject.clone(), entity.clone(), event_buffer.clone());
-                // FIXME why it's not working when killing bullet ?
-                collides(entity.clone(), subject.clone(), event_buffer.clone());
             }
         }
     }

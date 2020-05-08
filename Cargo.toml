@@ -59,6 +59,7 @@ features = [
     "AudioNode",
     "AudioBufferSourceNode",
     "AudioDestinationNode",
+    "AddEventListenerOptions",
 ]
 
 [dev-dependencies]

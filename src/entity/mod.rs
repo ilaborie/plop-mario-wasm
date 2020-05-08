@@ -3,7 +3,7 @@ use crate::audio::sounds::{AudioBoard, Fx};
 use crate::entity::bullet::BulletEntity;
 use crate::entity::cannon::CannonEntity;
 use crate::entity::entity_drawable::DrawableEntity;
-use crate::entity::events::{EntityEvent, EventBuffer};
+use crate::entity::events::{Event, EventBuffer};
 use crate::entity::goomba::GoombaEntity;
 use crate::entity::koopa::KoopaEntity;
 use crate::entity::traits::physics::Physics;
@@ -157,6 +157,11 @@ impl Entity {
             creation,
         }
     }
+
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+
     // Traits
     fn add_trait(&mut self, t: Rc<RefCell<dyn EntityTrait>>) {
         self.traits.push(t.clone());
@@ -272,17 +277,19 @@ pub fn finalize(event_buffer: Rc<RefCell<EventBuffer>>, entity: Rc<RefCell<Entit
     // Events
     let e = entity.clone();
     let traits = entity.borrow().traits.clone();
-    event_buffer.borrow().process(
+    event_buffer.borrow().process_entity(
         id.as_str(),
         Box::new(move |event| {
+            // log(&format!("Handle {:?}", event));
             for t in traits.iter() {
                 // log(&format!("<{:?}> on {:?}", event, t.borrow().name()));
                 if let Ok(mut t) = t.try_borrow_mut() {
                     match event {
-                        EntityEvent::Stomper(_) => t.on_stomper(e.clone()),
-                        EntityEvent::Stomped(_) => t.on_stomped(e.clone()),
-                        EntityEvent::Killer(_) => t.on_killer(e.clone()),
-                        EntityEvent::Killed(_) => t.on_killed(e.clone()),
+                        Event::Stomper { .. } => t.on_stomper(e.clone()),
+                        Event::Stomped(_) => t.on_stomped(e.clone()),
+                        Event::Killer(_) => t.on_killer(e.clone()),
+                        Event::Killed(_) => t.on_killed(e.clone()),
+                        _ => log(&format!("Event skipped: {:?}", event)),
                     }
                 } else {
                     log(&format!(

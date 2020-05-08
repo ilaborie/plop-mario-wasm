@@ -1,6 +1,7 @@
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::events::EventBuffer;
 use crate::entity::player::PlayerEntity;
+use crate::entity::traits::level_timer::LevelTimer;
 use crate::entity::traits::player_controller::PlayerController;
 use crate::entity::{Entity, Living};
 use crate::physics::bounding_box::BBox;
@@ -12,7 +13,7 @@ use std::rc::Rc;
 pub struct PlayerEnv {
     entity: Rc<RefCell<Entity>>,
     player: Rc<RefCell<PlayerEntity>>,
-    time: Rc<Cell<f64>>,
+    level_timer: Rc<RefCell<LevelTimer>>,
 }
 
 impl PlayerEnv {
@@ -26,19 +27,19 @@ impl PlayerEnv {
         checkpoint.set_x(8.);
         let checkpoint = Rc::new(RefCell::new(checkpoint));
 
-        let time = Rc::new(Cell::new(300.));
-
         // Traits
-        let controller =
-            PlayerController::new(player.clone().borrow().entity(), time.clone(), checkpoint);
+        let controller = PlayerController::new(player.clone().borrow().entity(), checkpoint);
         let controller = Rc::new(RefCell::new(controller));
+        let level_timer = LevelTimer::new(300., 100.);
+        let level_timer = Rc::new(RefCell::new(level_timer));
         entity.add_trait(controller);
+        entity.add_trait(level_timer.clone());
 
         let entity = Rc::new(RefCell::new(entity));
         Self {
             player,
             entity,
-            time,
+            level_timer,
         }
     }
 
@@ -46,11 +47,11 @@ impl PlayerEnv {
     pub fn name(&self) -> String {
         self.player.borrow().id().to_uppercase()
     }
+    pub fn time(&self) -> Rc<Cell<f64>> {
+        self.level_timer.borrow().current_time()
+    }
     pub fn score(&self) -> Rc<Cell<u32>> {
         self.player.borrow().player_trait().borrow().score()
-    }
-    pub fn time(&self) -> Rc<Cell<f64>> {
-        self.time.clone()
     }
     pub fn coins(&self) -> Rc<Cell<u32>> {
         self.player.borrow().player_trait().borrow().coins()

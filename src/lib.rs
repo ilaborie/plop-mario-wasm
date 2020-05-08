@@ -58,7 +58,7 @@ pub async fn run() -> Result<(), JsValue> {
 
     // Dashboard
     let font = Font::load().await?;
-    let mut dashboard = Dashboard::new(font, String::from(level), player.clone());
+    let mut dashboard = Dashboard::new(font, sys.level());
 
     // Timer
     let mut last_time = 0.0;

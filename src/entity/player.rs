@@ -44,7 +44,7 @@ impl PlayerEntity {
         let go = Rc::new(RefCell::new(Go::new(param.motion)));
         let jump = Rc::new(RefCell::new(Jump::new(param.jumping)));
         let stomper = Rc::new(RefCell::new(Stomper::new()));
-        let killable = Rc::new(RefCell::new(Killable::new(solid.clone())));
+        let killable = Rc::new(RefCell::new(Killable::new(solid.clone(), 50., -200.)));
         let physics = Rc::new(RefCell::new(physics));
         let player_trait = PlayerTrait::default();
         let player_trait = Rc::new(RefCell::new(player_trait));

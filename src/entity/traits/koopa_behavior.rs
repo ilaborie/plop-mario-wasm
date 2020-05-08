@@ -86,7 +86,9 @@ impl KoopaBehavior {
             KoopaState::Walking => self.hide(us),
             KoopaState::Hiding => {
                 us.borrow_mut().living = Living::Dead;
-                event_buffer.borrow_mut().kill(them, us);
+                event_buffer
+                    .borrow_mut()
+                    .kill(them.borrow().id(), us.borrow().id());
             }
             KoopaState::Panic => {
                 self.hide(us);
@@ -103,7 +105,9 @@ impl KoopaBehavior {
         match self.state {
             KoopaState::Walking => {
                 // Killer
-                event_buffer.borrow_mut().kill(us, them);
+                event_buffer
+                    .borrow_mut()
+                    .kill(us.borrow().id(), them.borrow().id());
             }
             KoopaState::Hiding => {
                 self.panic(us, them);
@@ -114,7 +118,9 @@ impl KoopaBehavior {
                 let impact_dir = delta.signum();
                 if travel_dir != 0. && (travel_dir - impact_dir).abs() > 0. {
                     // Killer
-                    event_buffer.borrow_mut().kill(us, them);
+                    event_buffer
+                        .borrow_mut()
+                        .kill(us.borrow().id(), them.borrow().id());
                 }
             }
         };
@@ -124,11 +130,6 @@ impl KoopaBehavior {
 impl EntityTrait for KoopaBehavior {
     fn name(&self) -> &str {
         "koopa"
-    }
-
-    fn on_killed(&mut self, entity: Rc<RefCell<Entity>>) {
-        entity.borrow_mut().dx = 100.;
-        entity.borrow_mut().dy = -200.;
     }
 
     fn update(&mut self, us: Rc<RefCell<Entity>>, context: &GameContext) {

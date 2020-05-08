@@ -24,6 +24,10 @@ impl<T: Clone> Matrix<T> {
         self.version
     }
 
+    pub fn size(&self) -> Size {
+        self.size
+    }
+
     pub fn get(&self, x: usize, y: usize) -> Option<&T> {
         if x < self.size.width as usize && y < self.size.height as usize {
             self.grid[x][y].as_ref()

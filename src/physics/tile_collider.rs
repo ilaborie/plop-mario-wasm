@@ -2,7 +2,7 @@ use crate::assets::levels::{Kind, TileData};
 use crate::assets::sprites::Sprite;
 use crate::assets::TILE_SIZE;
 use crate::entity::traits::obstruct;
-use crate::entity::{Entity, ObstructionSide};
+use crate::entity::{Entity, Living, ObstructionSide};
 use crate::physics::bounding_box::BBox;
 use crate::physics::matrix::Matrix;
 use crate::physics::tile_resolver::TileResolver;
@@ -131,6 +131,9 @@ impl Kind {
         tile_data: &TileData,
         resolver: &mut TileResolver,
     ) {
+        if entity.borrow().living() != Living::Alive {
+            return;
+        }
         let bbox = entity.borrow().collision_box();
         let dy = entity.borrow().dy();
         let rect = tile_data.rectangle();

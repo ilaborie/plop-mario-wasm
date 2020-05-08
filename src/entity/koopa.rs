@@ -24,7 +24,7 @@ impl KoopaEntity {
         let walk = Rc::new(RefCell::new(walk));
         let behavior = KoopaBehavior::new(walk.clone());
         let behavior = Rc::new(RefCell::new(behavior));
-        let killable = Rc::new(RefCell::new(Killable::new(solid.clone())));
+        let killable = Rc::new(RefCell::new(Killable::new(solid.clone(), 100., -200.)));
         let physics = Rc::new(RefCell::new(physics));
 
         entity.add_trait(solid);
