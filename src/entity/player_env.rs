@@ -53,6 +53,9 @@ impl PlayerEnv {
     pub fn score(&self) -> Rc<Cell<u32>> {
         self.player.borrow().player_trait().borrow().score()
     }
+    pub fn lives(&self) -> Rc<Cell<u32>> {
+        self.player.borrow().player_trait().borrow().lives()
+    }
     pub fn coins(&self) -> Rc<Cell<u32>> {
         self.player.borrow().player_trait().borrow().coins()
     }

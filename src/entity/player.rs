@@ -46,7 +46,7 @@ impl PlayerEntity {
         let stomper = Rc::new(RefCell::new(Stomper::new()));
         let killable = Rc::new(RefCell::new(Killable::new(solid.clone(), 50., -200.)));
         let physics = Rc::new(RefCell::new(physics));
-        let player_trait = PlayerTrait::default();
+        let player_trait = PlayerTrait::new(3);
         let player_trait = Rc::new(RefCell::new(player_trait));
 
         entity.add_trait(solid);

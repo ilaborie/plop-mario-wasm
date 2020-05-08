@@ -38,6 +38,9 @@ impl Dashboard {
             );
             self.font.print(context, score.as_str(), 16., line2);
 
+            let lives = format!(" x{:>2}", player_env.borrow().lives().get());
+            self.font.print(context, lives.as_str(), 96., line1);
+
             let coins = format!("@x{:0>2}", player_env.borrow().coins().get());
             self.font.print(context, coins.as_str(), 96., line2);
 

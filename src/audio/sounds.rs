@@ -19,6 +19,8 @@ pub enum Fx {
     Stomp,
     #[serde(alias = "shoot")]
     Shoot,
+    #[serde(alias = "coin")]
+    Coin,
 }
 
 async fn load_audio_buffer(
@@ -90,12 +92,17 @@ impl AudioBoard {
             .get(&fx)
             .unwrap_or_else(|| panic!("No fx {:?} found", fx));
 
-        let source = audio_context.create_buffer_source().unwrap();
-        source
-            .connect_with_audio_node(&audio_context.destination())
+        // Volume
+        let gain = audio_context.create_gain().unwrap();
+        gain.gain().set_value(0.2);
+        gain.connect_with_audio_node(&audio_context.destination())
             .unwrap();
+
+        let source = audio_context.create_buffer_source().unwrap();
+        source.connect_with_audio_node(&gain).unwrap();
         source.set_buffer(Some(&audio_buffer));
 
+        // Play
         source.start().unwrap();
     }
 }

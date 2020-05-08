@@ -24,35 +24,34 @@ impl MusicController {
     }
 
     pub fn play_hurry(&self) {
-        let player = self.music_player.clone();
-        let closure = Closure::wrap(Box::new(move |_: Event| {
-            log("Music End");
-            player.borrow().play(Track::Main, 1.3);
-        }) as Box<dyn FnMut(_)>);
+        if let Some(audio) = self.music_player.clone().borrow().play(Track::Hurry, 1.) {
+            let player = self.music_player.clone();
+            let closure = Closure::wrap(Box::new(move |_: Event| {
+                log("Music End");
+                player.borrow().play(Track::Main, 1.3);
+            }) as Box<dyn FnMut(_)>);
 
-        let mut options = AddEventListenerOptions::new();
-        options.once(true);
+            let mut options = AddEventListenerOptions::new();
+            options.once(true);
 
-        self.music_player
-            .clone()
-            .borrow()
-            .play(Track::Hurry, 1.)
-            .add_event_listener_with_callback_and_add_event_listener_options(
-                "ended",
-                closure.as_ref().unchecked_ref(),
-                &options,
-            )
-            .unwrap();
+            audio
+                .add_event_listener_with_callback_and_add_event_listener_options(
+                    "ended",
+                    closure.as_ref().unchecked_ref(),
+                    &options,
+                )
+                .unwrap();
 
-        // The instance of `Closure` that we created will invalidate its
-        // corresponding JS callback whenever it is dropped, so if we were to
-        // normally return from `setup_clock` then our registered closure will
-        // raise an exception when invoked.
-        //
-        // Normally we'd store the handle to later get dropped at an appropriate
-        // time but for now we want it to be a global handler so we use the
-        // `forget` method to drop it without invalidating the closure. Note that
-        // this is leaking memory in Rust, so this should be done judiciously!
-        closure.forget();
+            // The instance of `Closure` that we created will invalidate its
+            // corresponding JS callback whenever it is dropped, so if we were to
+            // normally return from `setup_clock` then our registered closure will
+            // raise an exception when invoked.
+            //
+            // Normally we'd store the handle to later get dropped at an appropriate
+            // time but for now we want it to be a global handler so we use the
+            // `forget` method to drop it without invalidating the closure. Note that
+            // this is leaking memory in Rust, so this should be done judiciously!
+            closure.forget();
+        }
     }
 }

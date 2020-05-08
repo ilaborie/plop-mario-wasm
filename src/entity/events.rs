@@ -9,6 +9,7 @@ pub enum Event {
     Stomped(String),
     Killer(String),
     Killed(String),
+    Coins(String, u32),
     TimeOk,
     Hurry,
     Timeout,
@@ -27,6 +28,7 @@ impl Event {
             Event::Stomped(id) => Some(id),
             Event::Killer(id) => Some(id),
             Event::Killed(id) => Some(id),
+            Event::Coins(id, _) => Some(id),
             Event::Hurry => None,
             Event::TimeOk => None,
             Event::Timeout => None,
@@ -63,6 +65,10 @@ impl EventBuffer {
     }
 
     // Entity
+    pub fn coin(&mut self, entity_id: String, count: u32) {
+        self.push_event(Event::Coins(entity_id, count));
+    }
+
     pub fn kill(&mut self, killer_id: String, killed_id: String) {
         self.push_event(Event::Killer(killer_id));
         self.push_event(Event::Killed(killed_id));

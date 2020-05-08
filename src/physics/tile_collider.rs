@@ -1,14 +1,15 @@
 use crate::assets::levels::{Kind, TileData};
 use crate::assets::sprites::Sprite;
 use crate::assets::TILE_SIZE;
+use crate::entity::events::EventBuffer;
 use crate::entity::traits::obstruct;
 use crate::entity::{Entity, Living, ObstructionSide};
 use crate::physics::bounding_box::BBox;
 use crate::physics::matrix::Matrix;
 use crate::physics::tile_resolver::TileResolver;
+use core::slice::Iter;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::__rt::core::slice::Iter;
 
 pub struct TileCollider {
     resolvers: Vec<TileResolver>,
@@ -27,7 +28,7 @@ impl TileCollider {
         self.resolvers.iter()
     }
 
-    pub fn check_x(&mut self, entity: Rc<RefCell<Entity>>) {
+    pub fn check_x(&mut self, entity: Rc<RefCell<Entity>>, event_buffer: Rc<RefCell<EventBuffer>>) {
         let dx = entity.borrow().dx();
         if dx == 0.0 {
             return;
@@ -46,13 +47,13 @@ impl TileCollider {
         for resolver in self.resolvers.iter_mut() {
             for tile_data in resolver.search_by_range(x_test, y, 0, height as u32) {
                 if let Some(tile) = tile_data.tile() {
-                    tile.handle_x(entity.clone(), tile_data, resolver)
+                    tile.handle_x(entity.clone(), &tile_data, resolver, event_buffer.clone())
                 }
             }
         }
     }
 
-    pub fn check_y(&mut self, entity: Rc<RefCell<Entity>>) {
+    pub fn check_y(&mut self, entity: Rc<RefCell<Entity>>, event_buffer: Rc<RefCell<EventBuffer>>) {
         let dy = entity.borrow().dy();
         if dy == 0.0 {
             return;
@@ -72,7 +73,7 @@ impl TileCollider {
             let tiles = resolver.search_by_range(x, y_test, width as u32, 0);
             for tile_data in tiles.iter() {
                 if let Some(tile) = tile_data.tile() {
-                    tile.handle_y(entity.clone(), tile_data, resolver)
+                    tile.handle_y(entity.clone(), tile_data, resolver, event_buffer.clone())
                 }
             }
         }
@@ -83,10 +84,15 @@ impl Kind {
     fn handle_x(
         self,
         entity: Rc<RefCell<Entity>>,
-        tile_data: TileData,
-        _resolver: &mut TileResolver,
+        tile_data: &TileData,
+        resolver: &mut TileResolver,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
-        Kind::handle_solid_x(entity, tile_data.rectangle());
+        if let Kind::Coin = self {
+            Kind::handle_coin(entity, tile_data, resolver, event_buffer)
+        } else {
+            Kind::handle_solid_x(entity, tile_data.rectangle());
+        }
     }
 
     fn handle_y(
@@ -94,11 +100,13 @@ impl Kind {
         entity: Rc<RefCell<Entity>>,
         tile_data: &TileData,
         resolver: &mut TileResolver,
+        event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
         match self {
             Kind::Ground => Kind::handle_solid_y(entity, tile_data.rectangle()),
             Kind::Brick => Kind::handle_brick_y(entity, tile_data, resolver),
             Kind::BrickBroken => Kind::handle_brick_y(entity, tile_data, resolver),
+            Kind::Coin => Kind::handle_coin(entity, tile_data, resolver, event_buffer),
         }
     }
 
@@ -125,7 +133,6 @@ impl Kind {
             obstruct(entity, ObstructionSide::Top, rect);
         }
     }
-
     fn handle_brick_y(
         entity: Rc<RefCell<Entity>>,
         tile_data: &TileData,
@@ -150,5 +157,17 @@ impl Kind {
                 resolver.remove(tile_data);
             }
         }
+    }
+
+    fn handle_coin(
+        entity: Rc<RefCell<Entity>>,
+        tile_data: &TileData,
+        resolver: &mut TileResolver,
+        event_buffer: Rc<RefCell<EventBuffer>>,
+    ) {
+        event_buffer
+            .borrow_mut()
+            .coin(entity.borrow().id.clone(), 1);
+        resolver.remove(tile_data);
     }
 }

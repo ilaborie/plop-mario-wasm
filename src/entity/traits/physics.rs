@@ -30,11 +30,15 @@ impl EntityTrait for Physics {
 
         // Y
         entity.borrow_mut().apply_velocity_y(dt);
-        self.tile_collider.borrow_mut().check_y(entity.clone());
+        self.tile_collider
+            .borrow_mut()
+            .check_y(entity.clone(), context.emitter());
 
         // X
         entity.borrow_mut().apply_velocity_x(dt);
-        self.tile_collider.borrow_mut().check_x(entity.clone());
+        self.tile_collider
+            .borrow_mut()
+            .check_x(entity.clone(), context.emitter());
 
         // Gravity
         entity.borrow_mut().apply_gravity(self.gravity.g * dt);

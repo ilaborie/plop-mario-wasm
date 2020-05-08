@@ -57,6 +57,8 @@ features = [
     "AudioContext",
     "AudioBuffer",
     "AudioNode",
+    "GainNode",
+    "AudioParam",
     "AudioBufferSourceNode",
     "AudioDestinationNode",
     "AddEventListenerOptions",

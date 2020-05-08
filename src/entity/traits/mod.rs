@@ -12,6 +12,7 @@ pub mod bullet_behavior;
 pub mod emitter;
 pub mod go;
 pub mod goomba_behavior;
+pub mod gravity;
 pub mod jump;
 pub mod killable;
 pub mod koopa_behavior;
@@ -27,11 +28,14 @@ pub mod walk;
 pub trait EntityTrait {
     fn name(&self) -> &str;
 
+    // Events
     fn on_stomper(&mut self, _entity: Rc<RefCell<Entity>>) {}
     fn on_stomped(&mut self, _entity: Rc<RefCell<Entity>>) {}
     fn on_killer(&mut self, _entity: Rc<RefCell<Entity>>) {}
     fn on_killed(&mut self, _entity: Rc<RefCell<Entity>>) {}
+    fn on_coin(&mut self, _entity: Rc<RefCell<Entity>>, _count: u32) {}
 
+    // Operations
     fn update(&mut self, _entity: Rc<RefCell<Entity>>, _context: &GameContext) {}
     fn obstruct(&mut self, _entity: Rc<RefCell<Entity>>, _side: ObstructionSide, _rect: BBox) {}
     fn collides(

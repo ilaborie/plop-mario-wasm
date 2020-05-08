@@ -21,6 +21,8 @@ pub enum AnimationName {
     Chance,
     #[serde(alias = "bullet")]
     Bullet,
+    #[serde(alias = "coin")]
+    Coin,
 }
 
 #[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
@@ -97,6 +99,13 @@ pub enum Sprite {
     Chance2,
     #[serde(alias = "chance-3")]
     Chance3,
+    // Coin
+    #[serde(alias = "coin-1")]
+    Coin1,
+    #[serde(alias = "coin-2")]
+    Coin2,
+    #[serde(alias = "coin-3")]
+    Coin3,
     // Cannon
     #[serde(alias = "cannon-1")]
     Cannon1,
@@ -395,9 +404,9 @@ impl SpriteSheet {
     }
 
     pub fn draw_tile(&self, context: &CanvasRenderingContext2d, sprite: Sprite, x: f64, y: f64) {
-        let size = self.size(sprite);
-        let x = x * size.width as f64;
-        let y = y * size.height as f64;
+        let Size { width, height } = self.tile_size;
+        let x = x * width as f64;
+        let y = y * height as f64;
         self.draw_image(context, sprite, x, y);
     }
 }

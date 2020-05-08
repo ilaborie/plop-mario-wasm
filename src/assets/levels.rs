@@ -21,6 +21,8 @@ pub enum Kind {
     Brick,
     #[serde(alias = "brick-broken")]
     BrickBroken,
+    #[serde(alias = "coin")]
+    Coin,
 }
 
 pub struct Ranges {

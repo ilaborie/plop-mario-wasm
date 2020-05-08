@@ -5,6 +5,9 @@
         },
         "stomp": {
             "url": "/assets/audio/stomp.ogg"
+        },
+        "coin": {
+            "url": "/assets/audio/coin.ogg"
         }
     }
 }

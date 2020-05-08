@@ -249,7 +249,7 @@ impl Entity {
     }
 
     // Audio
-    fn play_fx(&mut self, fx: Fx) {
+    pub fn play_fx(&mut self, fx: Fx) {
         self.sounds.insert(fx);
     }
 
@@ -289,6 +289,7 @@ pub fn finalize(event_buffer: Rc<RefCell<EventBuffer>>, entity: Rc<RefCell<Entit
                         Event::Stomped(_) => t.on_stomped(e.clone()),
                         Event::Killer(_) => t.on_killer(e.clone()),
                         Event::Killed(_) => t.on_killed(e.clone()),
+                        Event::Coins(_, count) => t.on_coin(e.clone(), *count),
                         _ => log(&format!("Event skipped: {:?}", event)),
                     }
                 } else {
