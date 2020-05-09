@@ -75,7 +75,7 @@ impl BackgroundsLayer {
 }
 
 impl Drawable for BackgroundsLayer {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
+    fn draw(&mut self, context: Rc<CanvasRenderingContext2d>, camera: &Camera) {
         let (cam_x, cam_y) = camera.position();
         let draw_width = camera.width() as usize;
         let draw_from = TileResolver::index(TILE_SIZE, cam_x) as usize;

@@ -1,7 +1,8 @@
-use crate::entity::events::EventBuffer;
 use crate::entity::{Entity, ObstructionSide};
+use crate::events::EventBuffer;
 use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
+use crate::scene::level::Level;
 use core::fmt;
 use core::fmt::Formatter;
 use std::cell::RefCell;
@@ -22,6 +23,7 @@ pub mod player;
 pub mod player_controller;
 pub mod solid;
 pub mod stomper;
+pub mod trigger;
 pub mod velocity;
 pub mod walk;
 
@@ -36,7 +38,7 @@ pub trait EntityTrait {
     fn on_coin(&mut self, _entity: Rc<RefCell<Entity>>, _count: u32) {}
 
     // Operations
-    fn update(&mut self, _entity: Rc<RefCell<Entity>>, _context: &GameContext) {}
+    fn update(&mut self, _entity: Rc<RefCell<Entity>>, _context: &GameContext, _level: &Level) {}
     fn obstruct(&mut self, _entity: Rc<RefCell<Entity>>, _side: ObstructionSide, _rect: BBox) {}
     fn collides(
         &mut self,
@@ -53,11 +55,13 @@ impl Debug for dyn EntityTrait {
     }
 }
 
-pub fn update(entity: Rc<RefCell<Entity>>, context: &GameContext) {
+pub fn update(entity: Rc<RefCell<Entity>>, context: &GameContext, level: &Level) {
     let traits = entity.clone().borrow().traits.clone();
 
     for t in traits.into_iter() {
-        t.clone().borrow_mut().update(entity.clone(), context);
+        t.clone()
+            .borrow_mut()
+            .update(entity.clone(), context, level);
     }
 
     entity.borrow_mut().lifetime += context.dt();

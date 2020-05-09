@@ -1,6 +1,7 @@
-use crate::audio::sounds::Fx;
+use crate::assets::audio::sounds::Fx;
 use crate::entity::traits::EntityTrait;
 use crate::entity::Entity;
+use crate::game::PlayerInfo;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
@@ -14,16 +15,22 @@ pub struct PlayerTrait {
 }
 
 impl PlayerTrait {
-    pub fn new(lives: u32) -> Self {
-        let lives = Rc::new(Cell::new(lives));
-        let coins = Rc::default();
-        let score = Rc::default();
+    pub fn new(player_info: &PlayerInfo) -> Self {
+        let lives = Rc::new(Cell::new(player_info.lives()));
+        let coins = Rc::new(Cell::new(player_info.coins()));
+        let score = Rc::new(Cell::new(player_info.score()));
 
         Self {
             lives,
             coins,
             score,
         }
+    }
+
+    pub fn reset(&mut self, player_info: &PlayerInfo) {
+        self.lives.set(player_info.lives());
+        self.coins.set(player_info.coins());
+        self.score.set(player_info.score());
     }
 
     pub fn lives(&self) -> Rc<Cell<u32>> {
@@ -61,10 +68,10 @@ impl EntityTrait for PlayerTrait {
     fn on_coin(&mut self, entity: Rc<RefCell<Entity>>, count: u32) {
         entity.borrow_mut().play_fx(Fx::Coin);
         let mut coin = self.coins.get() + count;
-        if coin >= COIN_LIVE_THRESHOLD {
-            let lives = self.lives.get() + coin / COIN_LIVE_THRESHOLD;
+        while coin >= COIN_LIVE_THRESHOLD {
+            let lives = self.lives.get() + 1;
             self.lives.set(lives);
-            coin %= COIN_LIVE_THRESHOLD;
+            coin -= COIN_LIVE_THRESHOLD;
         }
         self.coins.set(coin);
     }

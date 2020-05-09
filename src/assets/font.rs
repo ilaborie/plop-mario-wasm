@@ -1,19 +1,21 @@
 use crate::assets::load_image;
 use std::collections::HashMap;
+use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 
 const CHARS: &str = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
+#[derive(Clone)]
 pub struct Font {
-    image: HtmlImageElement,
+    image: Rc<HtmlImageElement>,
     map: HashMap<char, (usize, usize)>,
     size: u32,
 }
 
 impl Font {
     pub async fn load() -> Result<Font, JsValue> {
-        let image = load_image("/assets/images/font.png").await?;
+        let image = load_image("assets/images/font.png").await?;
         let row_len = image.width() as usize;
         let mut map = HashMap::default();
 
@@ -37,7 +39,7 @@ impl Font {
         self.size
     }
 
-    pub fn print(&self, context: &CanvasRenderingContext2d, text: &str, x: f64, y: f64) {
+    pub fn print(&self, context: Rc<CanvasRenderingContext2d>, text: &str, x: f64, y: f64) {
         let size = self.size as f64;
         for (index, ch) in text.char_indices() {
             let (sx, sy) = self
@@ -51,7 +53,7 @@ impl Font {
             let dy = y;
             context
                 .draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
-                    &self.image,
+                    &self.image.clone(),
                     sx,
                     sy,
                     size,

@@ -32,7 +32,7 @@ impl EntityLayer {
 }
 
 impl Drawable for EntityLayer {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
+    fn draw(&mut self, context: Rc<CanvasRenderingContext2d>, camera: &Camera) {
         let (cam_x, cam_y) = camera.position();
         let (x, y) = self.entity.borrow().position();
 

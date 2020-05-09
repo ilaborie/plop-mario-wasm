@@ -1,11 +1,11 @@
-use crate::entity::player_env::PlayerEnv;
 use crate::entity::traits::EntityTrait;
 use crate::entity::Entity;
 use crate::game::GameContext;
+use crate::scene::level::Level;
 use core::cell::RefCell;
 use std::rc::Rc;
 
-type EntityEmitter = Box<dyn Fn(Rc<RefCell<Entity>>, Rc<RefCell<PlayerEnv>>) -> ()>;
+type EntityEmitter = Box<dyn Fn(Rc<RefCell<Entity>>, &Level) -> ()>;
 
 pub struct Emitter {
     interval: f64,
@@ -29,9 +29,9 @@ impl Emitter {
         self.emitters.push(emitter);
     }
 
-    fn emit(&self, entity: Rc<RefCell<Entity>>, player_env: Rc<RefCell<PlayerEnv>>) {
+    fn emit(&self, entity: Rc<RefCell<Entity>>, level: &Level) {
         for emitter in self.emitters.iter() {
-            emitter(entity.clone(), player_env.clone());
+            emitter(entity.clone(), level);
         }
     }
 }
@@ -41,10 +41,10 @@ impl EntityTrait for Emitter {
         "emitter"
     }
 
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext, level: &Level) {
         self.cool_down -= context.dt();
         if self.cool_down <= 0. {
-            self.emit(entity, context.player_env());
+            self.emit(entity, level);
             self.cool_down = self.interval;
         }
     }

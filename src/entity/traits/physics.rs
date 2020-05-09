@@ -3,6 +3,7 @@ use crate::entity::Entity;
 use crate::game::GameContext;
 use crate::physics::tile_collider::TileCollider;
 use crate::physics::GravityForce;
+use crate::scene::level::Level;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -25,7 +26,7 @@ impl EntityTrait for Physics {
         "physics"
     }
 
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext, _level: &Level) {
         let dt = context.dt();
 
         // Y

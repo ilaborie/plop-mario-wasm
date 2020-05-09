@@ -2,9 +2,9 @@ use crate::entity::entity_display::EntityDisplay;
 use crate::entity::{Entity, EntityFeature, Living};
 use crate::physics::Size;
 use core::fmt;
+use core::fmt::{Debug, Formatter};
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::__rt::core::fmt::{Debug, Formatter};
 
 pub trait DrawableEntity {
     fn id(&self) -> String {

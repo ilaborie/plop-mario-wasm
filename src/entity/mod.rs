@@ -1,13 +1,13 @@
+use crate::assets::audio::sounds::{AudioBoard, Fx};
 use crate::assets::config::MobsDefault;
-use crate::audio::sounds::{AudioBoard, Fx};
 use crate::entity::bullet::BulletEntity;
 use crate::entity::cannon::CannonEntity;
 use crate::entity::entity_drawable::DrawableEntity;
-use crate::entity::events::{Event, EventBuffer};
 use crate::entity::goomba::GoombaEntity;
 use crate::entity::koopa::KoopaEntity;
 use crate::entity::traits::physics::Physics;
 use crate::entity::traits::EntityTrait;
+use crate::events::{Event, EventBuffer};
 use crate::physics::bounding_box::BBox;
 use crate::physics::{Position, Size};
 use crate::utils::log;
@@ -24,12 +24,12 @@ pub mod bullet;
 pub mod cannon;
 pub mod entity_display;
 pub mod entity_drawable;
-pub mod events;
 pub mod goomba;
 pub mod koopa;
 pub mod player;
 pub mod player_env;
 pub mod traits;
+pub mod trigger;
 
 pub fn create_mobs(
     id: String,
@@ -37,7 +37,6 @@ pub fn create_mobs(
     param: &MobsDefault,
     position: Position,
     physics: Physics,
-    event_buffer: Rc<RefCell<EventBuffer>>,
     audio: Option<Rc<AudioBoard>>,
 ) -> Rc<RefCell<dyn DrawableEntity>> {
     let bounding_box = param
@@ -45,7 +44,7 @@ pub fn create_mobs(
         .map(|r| BBox::new(r.x as f64, r.y as f64, r.size()))
         .unwrap_or_else(|| BBox::new(0., 0., param.size));
 
-    let mut entity = Entity::new(id, bounding_box, param.size, event_buffer, audio);
+    let mut entity = Entity::new(id, bounding_box, param.size, audio);
     entity.dx = param.speed;
     entity.x = position.x();
     entity.y = position.y();
@@ -86,9 +85,8 @@ type Task = Box<dyn FnMut(&mut Entity) -> ()>;
 pub type EntityToCreate = (String, Rc<RefCell<dyn DrawableEntity>>);
 
 pub struct Entity {
-    pub(crate) id: String,
+    id: String,
     traits: Vec<Rc<RefCell<dyn EntityTrait>>>,
-    event_buffer: Rc<RefCell<EventBuffer>>,
 
     // Lifetimes
     lifetime: f64,
@@ -123,7 +121,6 @@ impl Entity {
         id: String,
         bounding_box: BBox,
         size: Size,
-        event_buffer: Rc<RefCell<EventBuffer>>,
         audio_board: Option<Rc<AudioBoard>>,
     ) -> Self {
         let traits = vec![];
@@ -140,7 +137,7 @@ impl Entity {
 
         Entity {
             id,
-            event_buffer,
+            // event_buffer,
             traits,
             lifetime,
             living,
@@ -158,7 +155,7 @@ impl Entity {
         }
     }
 
-    fn id(&self) -> String {
+    pub(crate) fn id(&self) -> String {
         self.id.clone()
     }
 
@@ -277,29 +274,25 @@ pub fn finalize(event_buffer: Rc<RefCell<EventBuffer>>, entity: Rc<RefCell<Entit
     // Events
     let e = entity.clone();
     let traits = entity.borrow().traits.clone();
-    event_buffer.borrow().process_entity(
-        id.as_str(),
-        Box::new(move |event| {
-            // log(&format!("Handle {:?}", event));
-            for t in traits.iter() {
-                // log(&format!("<{:?}> on {:?}", event, t.borrow().name()));
-                if let Ok(mut t) = t.try_borrow_mut() {
-                    match event {
-                        Event::Stomper { .. } => t.on_stomper(e.clone()),
-                        Event::Stomped(_) => t.on_stomped(e.clone()),
-                        Event::Killer(_) => t.on_killer(e.clone()),
-                        Event::Killed(_) => t.on_killed(e.clone()),
-                        Event::Coins(_, count) => t.on_coin(e.clone(), *count),
-                        _ => log(&format!("Event skipped: {:?}", event)),
-                    }
-                } else {
-                    log(&format!(
-                        "Cannot process events for {} {:?}",
-                        t.borrow().name(),
-                        t
-                    ));
+    for event in event_buffer.borrow_mut().drain_entity(id.as_str()).iter() {
+        for t in traits.iter() {
+            // log(&format!("<{:?}> on {:?}", event, t.borrow().name()));
+            if let Ok(mut t) = t.try_borrow_mut() {
+                match event {
+                    Event::Stomper { .. } => t.on_stomper(e.clone()),
+                    Event::Stomped(_) => t.on_stomped(e.clone()),
+                    Event::Killer(_) => t.on_killer(e.clone()),
+                    Event::Killed(_) => t.on_killed(e.clone()),
+                    Event::Coins(_, count) => t.on_coin(e.clone(), *count),
+                    _ => log(&format!("Event skipped: {:?}", event)),
                 }
+            } else {
+                log(&format!(
+                    "Cannot process events for {} {:?}",
+                    t.borrow().name(),
+                    t
+                ));
             }
-        }),
-    );
+        }
+    }
 }

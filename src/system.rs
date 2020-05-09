@@ -1,101 +1,79 @@
-use crate::assets::config::Configuration;
-use crate::assets::TILE_SIZE;
-use crate::camera::Camera;
-use crate::entity::events::EventBuffer;
-use crate::entity::player_env::PlayerEnv;
-use crate::game::GameContext;
+use crate::assets::Assets;
+use crate::events::{Event, EventBuffer};
+use crate::game::{GameContext, PlayerInfo};
 use crate::input::Keyboard;
-use crate::layers::Drawable;
-use crate::level::Level;
+use crate::scene::SceneRunner;
+use crate::utils::log;
 use std::cell::RefCell;
 use std::rc::Rc;
-use wasm_bindgen::prelude::*;
 use web_sys::{AudioContext, CanvasRenderingContext2d};
 
 pub struct System {
-    level: Rc<RefCell<Level>>,
-    camera: Camera,
-    player: Rc<RefCell<PlayerEnv>>,
     audio_context: Rc<AudioContext>,
+    video_context: Rc<CanvasRenderingContext2d>,
     event_buffer: Rc<RefCell<EventBuffer>>,
+    scene_runner: Rc<RefCell<SceneRunner>>,
 }
 
 impl System {
-    pub async fn create(
-        config: Configuration,
-        level: &str,
-        player_name: &str,
-    ) -> Result<Self, JsValue> {
-        let camera_size = config.view * TILE_SIZE;
-        let camera = Camera::new(camera_size);
-
+    pub fn new(assets: Assets, video_context: Rc<CanvasRenderingContext2d>) -> Self {
         // Events
         let event_buffer: Rc<RefCell<EventBuffer>> = Rc::default();
 
-        let sprite_sheets = vec![
-            String::from(player_name),
-            String::from("bullet"),
-            String::from("cannon"),
-            String::from("goomba"),
-            String::from("koopa"),
-        ];
-        let mut level =
-            Level::load(config.clone(), level, sprite_sheets, event_buffer.clone()).await?;
-
-        let position = config.player.position;
-        let player = level.create_player(player_name, position, event_buffer.clone());
-
         // Keyboard
-        let mut keyboard = Keyboard::default();
-        keyboard.register(config.clone(), player.clone());
+        let mut input = Keyboard::new(&assets.configuration());
+        input.listen();
+        let input = Rc::new(RefCell::new(input));
+
+        // Scenes
+        let scene_runner = SceneRunner::new(assets, input);
+        let scene_runner = Rc::new(RefCell::new(scene_runner));
 
         // Audio
         let audio_context = AudioContext::new().unwrap();
         let audio_context = Rc::new(audio_context);
 
-        let level = Rc::new(RefCell::new(level));
-        let result = Self {
-            level,
-            player,
-            camera,
+        Self {
             audio_context,
+            video_context,
             event_buffer,
-        };
-        Ok(result)
+            scene_runner,
+        }
     }
 
-    pub fn player(&self) -> Rc<RefCell<PlayerEnv>> {
-        self.player.clone()
-    }
-
-    pub fn level(&self) -> Rc<RefCell<Level>> {
-        self.level.clone()
-    }
-
-    pub fn draw(&mut self, context: &CanvasRenderingContext2d) {
-        self.level.borrow_mut().draw(context, &self.camera);
+    pub fn start(&mut self, player_name: &str) {
+        let player_info = PlayerInfo::new(player_name, 3, 0, 0);
+        self.scene_runner
+            .borrow_mut()
+            .run_level("1-1", &player_info);
     }
 
     pub fn update(&mut self, dt: f64) {
         let context = GameContext::new(
             self.audio_context.clone(),
+            self.video_context.clone(),
             self.event_buffer.clone(),
-            self.player.clone(),
             dt,
         );
 
-        self.level.borrow_mut().update(&context);
+        // Update scene
+        self.scene_runner.borrow().update(&context);
 
+        // Process events
+        let sr = self.scene_runner.clone();
+        let system_events = self.event_buffer.borrow_mut().drain_system();
         self.event_buffer.borrow_mut().clear();
-
-        // Move camera
-        let width = self.level.borrow().size().width - 16;
-        let max_x = (width * TILE_SIZE) as f64;
-
-        let (x, _y) = self.player.borrow().position();
-        let shift = (TILE_SIZE * 6) as f64;
-        let cam_x = (x - shift).max(0.).min(max_x);
-        self.camera.set_x(cam_x);
+        for event in system_events.iter() {
+            match event {
+                Event::SceneComplete => sr.borrow_mut().run_next(),
+                Event::GotoLevel { level, player } => {
+                    log(&format!("Goto <{}> with {:?}", level, player));
+                    sr.borrow_mut().run_level(level.as_str(), &player);
+                    return;
+                }
+                _ => {} // Skip other events
+            }
+        }
     }
 }
 

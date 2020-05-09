@@ -14,10 +14,6 @@ impl TileResolver {
         Self { tiles, tile_size }
     }
 
-    pub fn tile_size(&self) -> u32 {
-        self.tile_size
-    }
-
     pub fn index(tile_size: u32, value: f64) -> u32 {
         (value / tile_size as f64).floor() as u32
     }

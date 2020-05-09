@@ -1,4 +1,5 @@
-use crate::assets::sprites::{AnimationName, Sprite};
+use crate::assets::animations::AnimationName;
+use crate::assets::sprites::Sprite;
 use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::goomba_behavior::GoombaBehavior;
@@ -55,7 +56,7 @@ impl DrawableEntity for GoombaEntity {
         };
 
         let result = if self.entity.borrow().living == Living::Dead {
-            EntityDisplay::sprite(AnimationName::Walk, Sprite::Flat, direction)
+            EntityDisplay::sprite_direction(AnimationName::Walk, Sprite::Flat, direction)
         } else {
             EntityDisplay::animation(AnimationName::Walk, dist, direction)
         };

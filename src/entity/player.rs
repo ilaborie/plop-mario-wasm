@@ -1,9 +1,9 @@
+use crate::assets::animations::AnimationName;
+use crate::assets::audio::sounds::AudioBoard;
 use crate::assets::config::PlayerDefault;
-use crate::assets::sprites::{AnimationName, Sprite};
-use crate::audio::sounds::AudioBoard;
+use crate::assets::sprites::Sprite;
 use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
-use crate::entity::events::EventBuffer;
 use crate::entity::traits::go::Go;
 use crate::entity::traits::jump::Jump;
 use crate::entity::traits::killable::Killable;
@@ -12,6 +12,7 @@ use crate::entity::traits::player::PlayerTrait;
 use crate::entity::traits::solid::Solid;
 use crate::entity::traits::stomper::Stomper;
 use crate::entity::{Entity, EntityFeature, Living};
+use crate::game::PlayerInfo;
 use crate::physics::bounding_box::BBox;
 use crate::physics::{Direction, Position};
 use std::cell::RefCell;
@@ -26,16 +27,15 @@ pub struct PlayerEntity {
 
 impl PlayerEntity {
     pub fn new(
-        id: String,
+        player_info: &PlayerInfo,
         position: Position,
         param: &PlayerDefault,
         physics: Physics,
-        event_buffer: Rc<RefCell<EventBuffer>>,
         audio: Option<Rc<AudioBoard>>,
     ) -> Self {
         let size = param.size;
         let bounding_box = BBox::new(0., 0., size);
-        let mut entity = Entity::new(id, bounding_box, size, event_buffer, audio);
+        let mut entity = Entity::new(String::from(player_info.name()), bounding_box, size, audio);
         entity.x = position.x();
         entity.y = position.y();
 
@@ -46,7 +46,7 @@ impl PlayerEntity {
         let stomper = Rc::new(RefCell::new(Stomper::new()));
         let killable = Rc::new(RefCell::new(Killable::new(solid.clone(), 50., -200.)));
         let physics = Rc::new(RefCell::new(physics));
-        let player_trait = PlayerTrait::new(3);
+        let player_trait = PlayerTrait::new(player_info);
         let player_trait = Rc::new(RefCell::new(player_trait));
 
         entity.add_trait(solid);
@@ -68,6 +68,14 @@ impl PlayerEntity {
             jump,
             player_trait,
         }
+    }
+
+    pub fn reset(&mut self, player_info: &PlayerInfo, position: Position) {
+        self.entity.borrow_mut().set_x(position.x(), 0.);
+        self.entity.borrow_mut().set_y(position.y(), 0.);
+        self.go.borrow_mut().reset();
+        self.jump.borrow_mut().reset();
+        self.player_trait.borrow_mut().reset(player_info);
     }
 
     pub fn player_trait(&self) -> Rc<RefCell<PlayerTrait>> {
@@ -135,15 +143,11 @@ impl DrawableEntity for PlayerEntity {
         let name = AnimationName::Run;
 
         if self.entity.borrow().living != Living::Alive {
-            return Some(EntityDisplay::sprite(
-                name,
-                Sprite::Dead,
-                self.go.borrow().direction(),
-            ));
+            return Some(EntityDisplay::sprite(Sprite::Dead));
         }
 
         if self.jump.borrow().is_jumping() {
-            return Some(EntityDisplay::sprite(
+            return Some(EntityDisplay::sprite_direction(
                 name,
                 Sprite::Jump,
                 self.go.borrow().direction(),
@@ -157,12 +161,12 @@ impl DrawableEntity for PlayerEntity {
             if (dx > 0. && direction == Direction::Left)
                 || (dx < 0. && direction == Direction::Right)
             {
-                EntityDisplay::sprite(name, Sprite::Break, self.go.borrow().direction())
+                EntityDisplay::sprite_direction(name, Sprite::Break, self.go.borrow().direction())
             } else {
                 EntityDisplay::animation(name, distance, direction)
             }
         } else {
-            EntityDisplay::sprite(name, Sprite::Idle, self.go.borrow().direction())
+            EntityDisplay::sprite_direction(name, Sprite::Idle, self.go.borrow().direction())
         };
         Some(result)
     }

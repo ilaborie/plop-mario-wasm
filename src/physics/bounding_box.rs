@@ -1,6 +1,7 @@
 use crate::camera::Camera;
 use crate::layers::Drawable;
 use crate::physics::Size;
+use std::rc::Rc;
 use web_sys::CanvasRenderingContext2d;
 
 #[derive(Copy, Clone, Debug)]
@@ -80,7 +81,7 @@ impl BBox {
 }
 
 impl Drawable for BBox {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
+    fn draw(&mut self, context: Rc<CanvasRenderingContext2d>, camera: &Camera) {
         let (cam_x, cam_y) = camera.position();
 
         context.stroke_rect(

@@ -1,4 +1,5 @@
-use crate::assets::sprites::{AnimationName, Sprite};
+use crate::assets::animations::AnimationName;
+use crate::assets::sprites::Sprite;
 use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::bullet_behavior::BulletBehavior;
@@ -49,7 +50,8 @@ impl DrawableEntity for BulletEntity {
             Direction::Right
         };
 
-        let result = EntityDisplay::sprite(AnimationName::Bullet, Sprite::Bullet, direction);
+        let result =
+            EntityDisplay::sprite_direction(AnimationName::Bullet, Sprite::Bullet, direction);
         Some(result)
     }
 }

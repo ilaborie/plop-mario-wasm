@@ -51,7 +51,7 @@ pub struct SoundAudioDescription {
 impl SoundAudioDescription {
     async fn load(name: &str) -> Result<SoundAudioDescription, JsValue> {
         log(&format!("Loading sound sheet '{}'", name));
-        let url = format!("/assets/sounds/{}.json", name);
+        let url = format!("assets/sounds/{}.json", name);
         let request = Request::new_with_str(&url)?;
 
         let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;

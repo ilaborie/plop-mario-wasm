@@ -1,6 +1,5 @@
 use crate::assets::sprites::Rectangle;
 use crate::physics::Size;
-use std::cell::RefCell;
 use std::f64;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
@@ -83,7 +82,7 @@ where
 }
 
 pub fn create_image_buffer(
-    image: Rc<RefCell<HtmlImageElement>>,
+    image: Rc<HtmlImageElement>,
     rect: &Rectangle,
     mirror: bool,
 ) -> HtmlCanvasElement {
@@ -101,7 +100,7 @@ pub fn create_image_buffer(
         }
         context
             .draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
-                &image.borrow(),
+                &image.clone(),
                 x as f64,
                 y as f64,
                 width as f64,

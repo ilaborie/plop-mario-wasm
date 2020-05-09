@@ -1,4 +1,5 @@
-use crate::assets::sprites::{AnimationName, Sprite, SpriteSheet};
+use crate::assets::animations::AnimationName;
+use crate::assets::sprites::{Sprite, SpriteSheet};
 use crate::physics::Direction;
 use web_sys::CanvasRenderingContext2d;
 
@@ -13,6 +14,9 @@ pub enum EntityDisplay {
         name: AnimationName,
         sprite: Sprite,
         direction: Direction,
+    },
+    SpriteOnly {
+        sprite: Sprite,
     },
 }
 
@@ -29,7 +33,7 @@ impl EntityDisplay {
         }
     }
 
-    pub(crate) fn sprite(
+    pub(crate) fn sprite_direction(
         name: AnimationName,
         sprite: Sprite,
         direction: Direction,
@@ -39,6 +43,10 @@ impl EntityDisplay {
             sprite,
             direction,
         }
+    }
+
+    pub(crate) fn sprite(sprite: Sprite) -> EntityDisplay {
+        EntityDisplay::SpriteOnly { sprite }
     }
 
     pub fn draw(&self, context: &CanvasRenderingContext2d, x: f64, y: f64, sprites: &SpriteSheet) {
@@ -53,6 +61,7 @@ impl EntityDisplay {
                 sprite,
                 direction,
             } => sprites.draw_tile_animation_fixed(context, *name, *sprite, x, y, *direction),
+            EntityDisplay::SpriteOnly { sprite } => sprites.draw_tile(context, *sprite, x, y),
         }
     }
 }

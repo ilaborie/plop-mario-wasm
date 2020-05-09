@@ -1,13 +1,12 @@
-use crate::assets::levels::{Kind, TileData};
+use crate::assets::levels::{TileData, TileType};
 use crate::assets::sprites::Sprite;
 use crate::assets::TILE_SIZE;
-use crate::entity::events::EventBuffer;
 use crate::entity::traits::obstruct;
 use crate::entity::{Entity, Living, ObstructionSide};
+use crate::events::EventBuffer;
 use crate::physics::bounding_box::BBox;
 use crate::physics::matrix::Matrix;
 use crate::physics::tile_resolver::TileResolver;
-use core::slice::Iter;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -22,10 +21,6 @@ impl TileCollider {
             .map(|mat| TileResolver::new(mat.clone(), TILE_SIZE))
             .collect();
         Self { resolvers }
-    }
-
-    pub fn resolvers(&self) -> Iter<'_, TileResolver> {
-        self.resolvers.iter()
     }
 
     pub fn check_x(&mut self, entity: Rc<RefCell<Entity>>, event_buffer: Rc<RefCell<EventBuffer>>) {
@@ -80,7 +75,7 @@ impl TileCollider {
     }
 }
 
-impl Kind {
+impl TileType {
     fn handle_x(
         self,
         entity: Rc<RefCell<Entity>>,
@@ -88,10 +83,10 @@ impl Kind {
         resolver: &mut TileResolver,
         event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
-        if let Kind::Coin = self {
-            Kind::handle_coin(entity, tile_data, resolver, event_buffer)
+        if let TileType::Coin = self {
+            TileType::handle_coin(entity, tile_data, resolver, event_buffer)
         } else {
-            Kind::handle_solid_x(entity, tile_data.rectangle());
+            TileType::handle_solid_x(entity, tile_data.rectangle());
         }
     }
 
@@ -103,10 +98,10 @@ impl Kind {
         event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
         match self {
-            Kind::Ground => Kind::handle_solid_y(entity, tile_data.rectangle()),
-            Kind::Brick => Kind::handle_brick_y(entity, tile_data, resolver),
-            Kind::BrickBroken => Kind::handle_brick_y(entity, tile_data, resolver),
-            Kind::Coin => Kind::handle_coin(entity, tile_data, resolver, event_buffer),
+            TileType::Ground => TileType::handle_solid_y(entity, tile_data.rectangle()),
+            TileType::Brick => TileType::handle_brick_y(entity, tile_data, resolver),
+            TileType::BrickBroken => TileType::handle_brick_y(entity, tile_data, resolver),
+            TileType::Coin => TileType::handle_coin(entity, tile_data, resolver, event_buffer),
         }
     }
 
@@ -165,9 +160,7 @@ impl Kind {
         resolver: &mut TileResolver,
         event_buffer: Rc<RefCell<EventBuffer>>,
     ) {
-        event_buffer
-            .borrow_mut()
-            .coin(entity.borrow().id.clone(), 1);
+        event_buffer.borrow_mut().coin(entity.borrow().id(), 1);
         resolver.remove(tile_data);
     }
 }

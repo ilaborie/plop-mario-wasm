@@ -1,4 +1,4 @@
-use crate::audio::sounds::Fx;
+use crate::assets::audio::sounds::Fx;
 use crate::entity::bullet::BulletEntity;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::emitter::Emitter;
@@ -21,7 +21,7 @@ impl CannonEntity {
         let emitter = Rc::new(RefCell::new(emitter));
         entity.add_trait(emitter.clone());
 
-        let event_buffer = entity.event_buffer.clone();
+        // let event_buffer = entity.event_buffer.clone();
 
         let entity = Rc::new(RefCell::new(entity));
         let result = Self { entity };
@@ -29,11 +29,15 @@ impl CannonEntity {
         let count = Rc::new(Cell::new(0));
         emitter
             .borrow_mut()
-            .add_emitter(Box::new(move |source, _player| {
+            .add_emitter(Box::new(move |source, level| {
                 let (x, y) = source.borrow().position();
-                let (player_x, _) = _player.borrow().position();
+                let delta_x = if let Some(player) = level.find_player() {
+                    let (player_x, _) = player.borrow().position();
+                    player_x - x
+                } else {
+                    HOLD_FIRE_THRESHOLD
+                };
 
-                let delta_x = player_x - x;
                 if delta_x.abs() < HOLD_FIRE_THRESHOLD {
                     return;
                 }
@@ -42,7 +46,7 @@ impl CannonEntity {
                 let id = format!("Bullet #{}", count.get());
                 let size = source.borrow().size;
                 let bounding_box = BBox::new(0., 0., size);
-                let mut entity = Entity::new(id, bounding_box, size, event_buffer.clone(), None);
+                let mut entity = Entity::new(id, bounding_box, size, None);
                 entity.dx = 80. * delta_x.signum();
                 entity.x = x;
                 entity.y = y;

@@ -1,29 +1,11 @@
-use crate::assets::{load_image, TILE_SIZE};
+use crate::assets::animations::{Animation, AnimationDefinition, AnimationName};
+use crate::assets::{load_image, load_json, TILE_SIZE};
 use crate::physics::{Direction, Size};
-use crate::utils::{create_image_buffer, log, window};
-use core::cell::RefCell;
+use crate::utils::{create_image_buffer, log};
 use std::collections::HashMap;
 use std::rc::Rc;
-use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement, Request, Response};
-
-#[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AnimationName {
-    #[serde(alias = "run")]
-    Run,
-    #[serde(alias = "walk")]
-    Walk,
-    #[serde(alias = "wake")]
-    Wake,
-    #[serde(alias = "chance")]
-    Chance,
-    #[serde(alias = "bullet")]
-    Bullet,
-    #[serde(alias = "coin")]
-    Coin,
-}
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
 
 #[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Sprite {
@@ -158,14 +140,6 @@ struct TileDefinition {
 }
 
 #[derive(Deserialize)]
-struct AnimationDefinition {
-    name: AnimationName,
-    #[serde(alias = "frameLen")]
-    frame_len: f64,
-    frames: Vec<Sprite>,
-}
-
-#[derive(Deserialize)]
 struct SpriteSheetDefinition {
     #[serde(alias = "imageURL")]
     image_url: String,
@@ -184,14 +158,10 @@ struct SpriteSheetDefinition {
 impl SpriteSheetDefinition {
     pub async fn load(name: &str) -> Result<SpriteSheetDefinition, JsValue> {
         log(&format!("Loading sprite sheet '{}'", name));
-        let url = format!("/assets/sprites/{}.json", name);
-        let request = Request::new_with_str(&url)?;
 
-        let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;
-        let resp: Response = resp_value.dyn_into().unwrap();
-        let json = JsFuture::from(resp.json()?).await?;
-
-        let result = json
+        let url = format!("assets/sprites/{}.json", name);
+        let result = load_json(url.as_str())
+            .await?
             .into_serde::<SpriteSheetDefinition>()
             .expect("Error during sprites loading");
 
@@ -199,77 +169,10 @@ impl SpriteSheetDefinition {
     }
 }
 
-// Animation
-
-pub struct Animation {
-    name: AnimationName,
-    image: Rc<RefCell<HtmlImageElement>>,
-    frames: HashMap<(Sprite, Direction), HtmlCanvasElement>,
-    frame_len: f64,
-    key_frames: Vec<Sprite>,
-}
-
-impl Animation {
-    fn build(
-        name: AnimationName,
-        animation_def: &AnimationDefinition,
-        image: Rc<RefCell<HtmlImageElement>>,
-    ) -> Self {
-        let frames = HashMap::default();
-        let frame_len = animation_def.frame_len;
-        let key_frames = animation_def.frames.clone();
-
-        Self {
-            name,
-            image,
-            frames,
-            frame_len,
-            key_frames,
-        }
-    }
-
-    fn define(&mut self, frame: Sprite, direction: Direction, rect: &Rectangle) {
-        let mirror = direction == Direction::Left;
-        let buffer = create_image_buffer(self.image.clone(), rect, mirror);
-        self.frames.insert((frame, direction), buffer);
-    }
-
-    fn frame(&self, distance: f64) -> Sprite {
-        // log(&format!("{:?} distance {}", self.name, distance).to_string());
-        let index = (distance / self.frame_len) as usize % self.key_frames.len();
-        self.key_frames[index]
-    }
-
-    fn draw_frame(
-        &self,
-        context: &CanvasRenderingContext2d,
-        x: f64,
-        y: f64,
-        frame: Sprite,
-        direction: Direction,
-    ) {
-        let buffer = self.frames.get(&(frame, direction)).unwrap_or_else(|| {
-            let found: Vec<Sprite> = self
-                .frames
-                .keys()
-                .filter(|it| it.1 == direction)
-                .map(|t| t.0)
-                .collect();
-            panic!(
-                "[{:?}] Frame ({:?},{:?}) not found!, got {:?}",
-                self.name, frame, direction, found
-            )
-        });
-        context
-            .draw_image_with_html_canvas_element(&buffer, x as f64, y as f64)
-            .unwrap();
-    }
-}
-
 // SpriteSheet
 pub struct SpriteSheet {
     name: String,
-    image: Rc<RefCell<HtmlImageElement>>,
+    image: Rc<HtmlImageElement>,
     tile_size: Size,
     sprites: HashMap<Sprite, HtmlCanvasElement>,
     sprites_size: HashMap<Sprite, Size>,
@@ -285,7 +188,7 @@ impl SpriteSheet {
         let tile_height = definition.tile_height.unwrap_or(TILE_SIZE);
         let tile_size = Size::new(tile_width, tile_height);
 
-        let image = Rc::new(RefCell::new(load_image(&definition.image_url).await?));
+        let image = load_image(&definition.image_url).await?;
 
         let mut result = SpriteSheet::new(name, image.clone(), tile_size);
 
@@ -298,10 +201,11 @@ impl SpriteSheet {
 
         // Animations
         for animation_def in definition.animations.iter() {
-            let mut animation = Animation::build(animation_def.name, animation_def, image.clone());
+            let mut animation =
+                Animation::build(animation_def.name(), animation_def, image.clone());
             // Define tiles
             for tile_def in definition.tiles.iter() {
-                if animation_def.frames.contains(&tile_def.name) {
+                if animation_def.frames().contains(&tile_def.name) {
                     let (x, y) = tile_def.index;
                     let x = x * tile_width;
                     let y = y * tile_height;
@@ -323,13 +227,13 @@ impl SpriteSheet {
                     result.define(frame_def.name, &frame_def.rect);
                 }
             }
-            result.animations.insert(animation_def.name, animation);
+            result.animations.insert(animation_def.name(), animation);
         }
 
         Ok(result)
     }
 
-    fn new(name: String, image: Rc<RefCell<HtmlImageElement>>, tile_size: Size) -> Self {
+    fn new(name: String, image: Rc<HtmlImageElement>, tile_size: Size) -> Self {
         let sprites = HashMap::default();
         let sprites_size = HashMap::default();
         let animations = HashMap::new();

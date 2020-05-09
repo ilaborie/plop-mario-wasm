@@ -2,6 +2,7 @@ use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
 use crate::game::GameContext;
 use crate::physics::Position;
+use crate::scene::level::Level;
 use core::cell::RefCell;
 use std::rc::Rc;
 
@@ -30,7 +31,7 @@ impl EntityTrait for PlayerController {
         "player_controller"
     }
 
-    fn update(&mut self, _entity: Rc<RefCell<Entity>>, context: &GameContext) {
+    fn update(&mut self, _entity: Rc<RefCell<Entity>>, context: &GameContext, _level: &Level) {
         let living = self.player.borrow().living;
         let dt = context.dt();
         if let Living::NoExistence = living {

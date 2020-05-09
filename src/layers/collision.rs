@@ -19,7 +19,7 @@ impl CollisionLayer {
     }
 
     fn draw_entity(
-        context: &CanvasRenderingContext2d,
+        context: Rc<CanvasRenderingContext2d>,
         cam_x: f64,
         cam_y: f64,
         x: f64,
@@ -34,14 +34,15 @@ impl CollisionLayer {
     }
 
     fn draw_box(
-        context: &CanvasRenderingContext2d,
+        context: Rc<CanvasRenderingContext2d>,
+        color: &str,
         cam_x: f64,
         cam_y: f64,
         tile_size: f64,
         xi: u32,
         yi: u32,
     ) {
-        context.set_stroke_style(&JsValue::from("blue"));
+        context.set_stroke_style(&JsValue::from(color));
         context.set_fill_style(&JsValue::from("rgba(0,0,128,.5"));
         context.set_line_width(0.5);
         context.stroke_rect(
@@ -54,7 +55,7 @@ impl CollisionLayer {
 }
 
 impl Drawable for CollisionLayer {
-    fn draw(&mut self, context: &CanvasRenderingContext2d, camera: &Camera) {
+    fn draw(&mut self, context: Rc<CanvasRenderingContext2d>, camera: &Camera) {
         if self.entity.borrow().entity().borrow().living() != Living::Alive {
             return;
         }
@@ -67,7 +68,7 @@ impl Drawable for CollisionLayer {
         let y = collision_box.top();
         let width = collision_box.width();
         let height = collision_box.height();
-        CollisionLayer::draw_entity(context, cam_x, cam_y, x, y, width, height);
+        CollisionLayer::draw_entity(context.clone(), cam_x, cam_y, x, y, width, height);
 
         // Boxes
         let xs = TileResolver::index_range(TILE_SIZE, x, x + width);
@@ -75,7 +76,7 @@ impl Drawable for CollisionLayer {
         let tile_size = TILE_SIZE as f64;
         for xi in xs {
             for yi in ys.clone() {
-                CollisionLayer::draw_box(context, cam_x, cam_y, tile_size, xi, yi);
+                CollisionLayer::draw_box(context.clone(), "blue", cam_x, cam_y, tile_size, xi, yi);
             }
         }
     }

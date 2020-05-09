@@ -24,13 +24,20 @@ Logger.config = {
 };
 
 const logger = Logger.getLogger("assets");
+const cache = new Map();
 window.loader = {
     loadImage: (url) => {
         return new Promise(resolve => {
-            logger.info("Loading image", url);
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.src = url;
+            const cached = cache.get(url);
+            if (cached) {
+                resolve(cached)
+            } else {
+                logger.info("Loading image", url);
+                const img = new Image();
+                cache.set(url, img);
+                img.onload = () => resolve(img);
+                img.src = url;
+            }
         });
     }
 };

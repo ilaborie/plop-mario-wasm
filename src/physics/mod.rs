@@ -46,6 +46,15 @@ impl Position {
     }
 }
 
+impl From<(u32, u32)> for Position {
+    fn from(pos: (u32, u32)) -> Self {
+        let x = pos.0 as f64;
+        let y = pos.1 as f64;
+
+        Self { x, y }
+    }
+}
+
 #[derive(Deserialize, Clone, Copy, Default, Debug)]
 pub struct Size {
     pub(crate) width: u32,

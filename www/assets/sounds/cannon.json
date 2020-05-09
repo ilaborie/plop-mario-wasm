@@ -1,7 +1,7 @@
 {
     "fx": {
         "shoot": {
-            "url": "/assets/audio/thwomp.ogg"
+            "url": "assets/audio/thwomp.ogg"
         }
     }
 }

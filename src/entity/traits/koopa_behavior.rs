@@ -1,8 +1,9 @@
-use crate::entity::events::EventBuffer;
 use crate::entity::traits::walk::Walk;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
+use crate::events::EventBuffer;
 use crate::game::GameContext;
+use crate::scene::level::Level;
 use core::cell::RefCell;
 use std::rc::Rc;
 
@@ -132,7 +133,7 @@ impl EntityTrait for KoopaBehavior {
         "koopa"
     }
 
-    fn update(&mut self, us: Rc<RefCell<Entity>>, context: &GameContext) {
+    fn update(&mut self, us: Rc<RefCell<Entity>>, context: &GameContext, _level: &Level) {
         if self.state == KoopaState::Hiding {
             self.hide_time += context.dt();
             if self.hide_time > self.hide_duration {

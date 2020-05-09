@@ -1,10 +1,11 @@
+use crate::assets::audio::sounds::Fx;
 use crate::assets::config::MotionDefault;
-use crate::audio::sounds::Fx;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living, ObstructionSide};
 use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
 use crate::physics::Direction;
+use crate::scene::level::Level;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -45,6 +46,12 @@ impl Go {
             distance,
             acceleration,
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.count = 0;
+        self.distance = 0.;
+        self.acceleration = 0.;
     }
 
     pub fn direction(&self) -> Direction {
@@ -119,7 +126,7 @@ impl EntityTrait for Go {
         entity.borrow_mut().dy = -200.;
     }
 
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext, _level: &Level) {
         if entity.borrow().living != Living::Alive {
             self.count = 0;
             self.heading = Direction::Right;

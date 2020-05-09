@@ -25,7 +25,7 @@ struct MusicDescription {
 impl MusicDescription {
     pub async fn load(name: &str) -> Result<MusicDescription, JsValue> {
         log(&format!("Loading music sheet '{}'", name));
-        let url = format!("/assets/musics/{}.json", name);
+        let url = format!("assets/musics/{}.json", name);
         let request = Request::new_with_str(&url)?;
 
         let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;
@@ -67,10 +67,14 @@ impl MusicPlayer {
         self.tracks.insert(track, audio);
     }
 
-    pub fn play(&self, track: Track, speed: f64) -> Option<&HtmlAudioElement> {
+    pub fn pause(&self) {
         for audio in self.tracks.values() {
             audio.pause().unwrap();
         }
+    }
+
+    pub fn play(&self, track: Track, speed: f64) -> Option<&HtmlAudioElement> {
+        self.pause();
 
         self.tracks.get(&track).map(|audio| {
             let _ = audio.play().unwrap();

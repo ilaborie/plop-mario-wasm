@@ -1,12 +1,9 @@
+use crate::assets::load_json;
 use crate::assets::sprites::Rectangle;
 use crate::input::Action;
 use crate::physics::{Direction, Position, Size};
-use crate::utils::window;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, Response};
 
 #[derive(Deserialize, Copy, Clone, Debug)]
 pub struct JumpingDefault {
@@ -45,11 +42,12 @@ pub struct MobsDefault {
     pub bbox: Option<Rectangle>,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Copy, Clone, Debug)]
 pub struct DevConfiguration {
     #[serde(alias = "showCollision")]
     pub(crate) show_collision: bool,
 }
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct Configuration {
     pub dev: DevConfiguration,
@@ -62,17 +60,16 @@ pub struct Configuration {
 
 impl Configuration {
     pub async fn load() -> Result<Configuration, JsValue> {
-        let request = Request::new_with_str("/assets/config.json")?;
-
-        let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;
-        let resp: Response = resp_value.dyn_into().unwrap();
-        let json = JsFuture::from(resp.json()?).await?;
-
-        let config = json
+        let config = load_json("assets/config.json")
+            .await?
             .into_serde::<Configuration>()
             .expect("Error during level loading");
 
         Ok(config)
+    }
+
+    pub fn keymap(&self) -> HashMap<String, Action> {
+        self.keymap.clone()
     }
 
     pub fn action(&self, key_code: String) -> Option<Action> {

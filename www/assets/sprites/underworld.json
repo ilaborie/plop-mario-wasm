@@ -1,5 +1,5 @@
 {
-    "imageURL": "/assets/images/world.png",
+    "imageURL": "assets/images/world.png",
     "tileW": 16,
     "tileH": 16,
 
@@ -11,6 +11,35 @@
         {
             "name": "sky",
             "index": [13, 3]
+        },
+        {
+            "name": "coin",
+            "index": [24, 3]
+        },
+        {
+            "name": "coin-1",
+            "index": [24, 3]
+        },
+        {
+            "name": "coin-2",
+            "index": [25, 3]
+        },
+        {
+            "name": "coin-3",
+            "index": [26, 3]
+        }
+    ],
+    "animations": [
+        {
+            "name": "coin",
+            "frameLen": 100,
+            "frames": [
+                "coin-1",
+                "coin-1",
+                "coin-2",
+                "coin-3",
+                "coin-2"
+            ]
         }
     ]
 }

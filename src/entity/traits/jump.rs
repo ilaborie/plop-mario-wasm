@@ -1,10 +1,11 @@
+use crate::assets::audio::sounds::Fx;
 use crate::assets::config::JumpingDefault;
-use crate::audio::sounds::Fx;
-use crate::entity::events::EventBuffer;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
+use crate::events::EventBuffer;
 use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
+use crate::scene::level::Level;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -38,6 +39,11 @@ impl Jump {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.engage_time = 0.;
+        self.request_time = 0.;
+        self.ready = false;
+    }
     pub(crate) fn is_jumping(&self) -> bool {
         !self.ready
     }
@@ -56,7 +62,7 @@ impl EntityTrait for Jump {
         "jump"
     }
 
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext, _level: &Level) {
         if self.request_time > 0. {
             if self.ready {
                 entity.borrow_mut().play_fx(Fx::Jump);

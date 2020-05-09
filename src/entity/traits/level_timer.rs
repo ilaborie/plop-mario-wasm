@@ -1,9 +1,10 @@
 use crate::entity::traits::EntityTrait;
 use crate::entity::Entity;
 use crate::game::GameContext;
+use crate::scene::level::Level;
+use core::cell::RefCell;
 use std::cell::Cell;
 use std::rc::Rc;
-use wasm_bindgen::__rt::core::cell::RefCell;
 
 pub struct LevelTimer {
     current_time: Rc<Cell<f64>>,
@@ -33,7 +34,7 @@ impl EntityTrait for LevelTimer {
         "timer"
     }
 
-    fn update(&mut self, _entity: Rc<RefCell<Entity>>, context: &GameContext) {
+    fn update(&mut self, _entity: Rc<RefCell<Entity>>, context: &GameContext, _level: &Level) {
         let mut ct = self.current_time.get();
         ct -= 2. * context.dt();
         self.current_time.set(ct);

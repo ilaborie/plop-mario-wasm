@@ -2,6 +2,7 @@ use crate::entity::traits::solid::Solid;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
 use crate::game::GameContext;
+use crate::scene::level::Level;
 use core::cell::RefCell;
 use std::rc::Rc;
 
@@ -39,7 +40,7 @@ impl EntityTrait for Killable {
         entity.borrow_mut().dy += self.ddy;
     }
 
-    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext) {
+    fn update(&mut self, entity: Rc<RefCell<Entity>>, context: &GameContext, _level: &Level) {
         let alive = entity.borrow().living == Living::Alive;
         let dead = entity.borrow().living == Living::Dead;
         self.solid.borrow_mut().set_obstructs(alive);

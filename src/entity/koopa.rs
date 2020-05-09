@@ -1,4 +1,5 @@
-use crate::assets::sprites::{AnimationName, Sprite};
+use crate::assets::animations::AnimationName;
+use crate::assets::sprites::Sprite;
 use crate::entity::entity_display::EntityDisplay;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::killable::Killable;
@@ -61,11 +62,11 @@ impl DrawableEntity for KoopaEntity {
                 if self.behavior.borrow().hide_time() > 3. {
                     EntityDisplay::animation(AnimationName::Wake, dist, direction)
                 } else {
-                    EntityDisplay::sprite(AnimationName::Walk, Sprite::Hiding, direction)
+                    EntityDisplay::sprite_direction(AnimationName::Walk, Sprite::Hiding, direction)
                 }
             }
             KoopaState::Panic => {
-                EntityDisplay::sprite(AnimationName::Walk, Sprite::Hiding, direction)
+                EntityDisplay::sprite_direction(AnimationName::Walk, Sprite::Hiding, direction)
             }
             KoopaState::Walking => EntityDisplay::animation(AnimationName::Walk, dist, direction),
         };

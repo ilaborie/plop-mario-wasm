@@ -1,27 +1,59 @@
-use crate::entity::events::EventBuffer;
-use crate::entity::player_env::PlayerEnv;
+use crate::events::EventBuffer;
 use std::cell::RefCell;
 use std::rc::Rc;
-use web_sys::AudioContext;
+use web_sys::{AudioContext, CanvasRenderingContext2d};
 
+#[derive(Clone, Debug)]
+pub struct PlayerInfo {
+    name: String,
+    lives: u32,
+    score: u32,
+    coins: u32,
+}
+
+impl PlayerInfo {
+    pub fn new(name: &str, lives: u32, score: u32, coins: u32) -> Self {
+        let name = String::from(name);
+        Self {
+            name,
+            lives,
+            score,
+            coins,
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        self.name.as_str()
+    }
+    pub fn lives(&self) -> u32 {
+        self.lives
+    }
+    pub fn score(&self) -> u32 {
+        self.score
+    }
+    pub fn coins(&self) -> u32 {
+        self.coins
+    }
+}
+
+#[derive(Clone)]
 pub struct GameContext {
     audio_context: Rc<AudioContext>,
-    player_env: Rc<RefCell<PlayerEnv>>,
+    video_context: Rc<CanvasRenderingContext2d>,
     event_buffer: Rc<RefCell<EventBuffer>>,
     dt: f64,
 }
 
-#[allow(dead_code)]
 impl GameContext {
     pub fn new(
         audio_context: Rc<AudioContext>,
+        video_context: Rc<CanvasRenderingContext2d>,
         event_buffer: Rc<RefCell<EventBuffer>>,
-        player_env: Rc<RefCell<PlayerEnv>>,
         dt: f64,
     ) -> Self {
         Self {
             audio_context,
-            player_env,
+            video_context,
             event_buffer,
             dt,
         }
@@ -31,12 +63,12 @@ impl GameContext {
         self.dt
     }
 
-    pub fn emitter(&self) -> Rc<RefCell<EventBuffer>> {
-        self.event_buffer.clone()
+    pub fn video_context(&self) -> Rc<CanvasRenderingContext2d> {
+        self.video_context.clone()
     }
 
-    pub fn player_env(&self) -> Rc<RefCell<PlayerEnv>> {
-        self.player_env.clone()
+    pub fn emitter(&self) -> Rc<RefCell<EventBuffer>> {
+        self.event_buffer.clone()
     }
 
     pub fn audio_context(&self) -> &AudioContext {
