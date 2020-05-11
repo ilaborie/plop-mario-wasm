@@ -1,4 +1,4 @@
 {
-  "main": { "url": "/assets/audio/overworld.ogg" },
-  "hurry": { "url": "/assets/audio/hurry.ogg" }
+  "main": { "url": "assets/audio/overworld.ogg" },
+  "hurry": { "url": "assets/audio/hurry.ogg" }
 }
