@@ -1,0 +1,80 @@
+{
+  "dev": {
+    "showCollision": true
+  },
+  "keymap": {
+    "KeyA": "MoveLeft",
+    "ArrowLeft": "MoveLeft",
+    "KeyD": "MoveRight",
+    "ArrowRight": "MoveRight",
+    "Space": "Jump",
+    "KeyP": "Jump",
+    "KeyW": "Jump",
+    "KeyO": "Run",
+    "ShiftLeft": "Run"
+  },
+  "view": {
+    "width": 16,
+    "height": 15
+  },
+  "gravity": 1500,
+  "player": {
+    "position": {
+      "x": 8,
+      "y": 64
+    },
+    "size": {
+      "width": 14,
+      "height": 16
+    },
+    "jumping": {
+      "duration": 0.15,
+      "velocity": 17200,
+      "gracePeriod": 0.1,
+      "speedBoost": 0.6
+    },
+    "motion": {
+      "direction": "Right",
+      "acceleration": 200,
+      "deceleration": 5,
+      "dragFactor": 0.25
+    },
+    "stomp": 5000
+  },
+  "mobs": {
+    "cannon": {
+      "speed": 60,
+      "size": {
+        "width": 16,
+        "height": 14
+      }
+    },
+    "bullet": {
+      "speed": 60,
+      "size": {
+        "width": 16,
+        "height": 14
+      }
+    },
+    "goomba": {
+      "speed": 30,
+      "size": {
+        "width": 16,
+        "height": 16
+      }
+    },
+    "koopa": {
+      "speed": -35,
+      "size": {
+        "width": 16,
+        "height": 24
+      },
+      "bbox": {
+        "x": 0,
+        "y": 8,
+        "width": 16,
+        "height": 16
+      }
+    }
+  }
+}
