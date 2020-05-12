@@ -105,7 +105,7 @@ impl Animation {
             )
         });
         context
-            .draw_image_with_html_canvas_element(&buffer, x as f64, y as f64)
+            .draw_image_with_html_canvas_element(&buffer, x.floor(), y.floor())
             .unwrap();
     }
 }

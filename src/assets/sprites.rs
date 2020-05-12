@@ -292,7 +292,7 @@ impl SpriteSheet {
             .get(&sprite)
             .unwrap_or_else(|| panic!("[{}] Sprite {:?} not found!", self.name, sprite));
         context
-            .draw_image_with_html_canvas_element(&buffer, x, y)
+            .draw_image_with_html_canvas_element(&buffer, x.floor(), y.floor())
             .unwrap();
     }
 
