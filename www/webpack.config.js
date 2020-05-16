@@ -9,9 +9,11 @@ module.exports = {
     },
     mode: "development",
     plugins: [
-        new CopyWebpackPlugin([
-            'index.html',
-            {from: 'assets', to: 'assets'}
-        ])
+        new CopyWebpackPlugin({
+            patterns: [
+                'index.html',
+                {from: 'assets', to: 'assets'}
+            ]
+        })
     ],
 };

@@ -13,7 +13,7 @@
     "plop-mario-wasm": "../pkg"
   },
   "devDependencies": {
-    "copy-webpack-plugin": "^5.0.0",
+    "copy-webpack-plugin": "^6.0.0",
     "gh-pages": "^2.2.0",
     "raw-loader": "^4.0.1",
     "rimraf": "^3.0.2",
