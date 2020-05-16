@@ -48,9 +48,16 @@ pub struct DevConfiguration {
     pub(crate) show_collision: bool,
 }
 
+#[derive(Deserialize, Copy, Clone, Debug)]
+pub struct SoundsConfiguration {
+    pub fx: f32,
+    pub music: f64,
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct Configuration {
     pub dev: DevConfiguration,
+    pub sounds: SoundsConfiguration,
     keymap: HashMap<String, Action>,
     pub view: Size,
     pub gravity: f64,

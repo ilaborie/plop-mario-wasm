@@ -86,7 +86,6 @@ impl KoopaBehavior {
         match self.state {
             KoopaState::Walking => self.hide(us),
             KoopaState::Hiding => {
-                us.borrow_mut().living = Living::Dead;
                 event_buffer
                     .borrow_mut()
                     .kill(them.borrow().id(), us.borrow().id());

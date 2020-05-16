@@ -43,13 +43,16 @@ impl MusicDescription {
 #[derive(Default)]
 pub struct MusicPlayer {
     tracks: HashMap<Track, HtmlAudioElement>,
+    volume: f64,
 }
 
 impl MusicPlayer {
-    pub async fn load_music(name: &str) -> Result<MusicPlayer, JsValue> {
+    pub async fn load_music(name: &str, volume: f64) -> Result<MusicPlayer, JsValue> {
         let desc = MusicDescription::load(name).await?;
 
         let mut result = Self::default();
+        result.volume = volume;
+
         if let Some(main) = desc.main {
             result.add_track(Track::Main, main.url.as_str(), true);
         }
@@ -62,7 +65,6 @@ impl MusicPlayer {
     fn add_track(&mut self, track: Track, url: &str, looping: bool) {
         let audio = HtmlAudioElement::new_with_src(url).unwrap();
         audio.set_loop(looping);
-        audio.set_volume(0.5);
 
         self.tracks.insert(track, audio);
     }
@@ -78,6 +80,7 @@ impl MusicPlayer {
 
         self.tracks.get(&track).map(|audio| {
             let _ = audio.play().unwrap();
+            audio.set_volume(self.volume);
             audio.set_playback_rate(speed);
             audio
         })

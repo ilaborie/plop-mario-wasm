@@ -87,7 +87,11 @@ impl Drawable for BackgroundsLayer {
 
         // Draw buffer
         context
-            .draw_image_with_html_canvas_element(&self.buffer, (-cam_x % TILE_SIZE as f64).floor(), (-cam_y).floor())
+            .draw_image_with_html_canvas_element(
+                &self.buffer,
+                (-cam_x % TILE_SIZE as f64).floor(),
+                (-cam_y).floor(),
+            )
             .unwrap();
 
         // Draw Animations

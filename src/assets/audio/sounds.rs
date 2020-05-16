@@ -69,10 +69,11 @@ impl SoundAudioDescription {
 #[derive(Default)]
 pub struct AudioBoard {
     map: HashMap<Fx, AudioBuffer>,
+    volume: f32,
 }
 
 impl AudioBoard {
-    pub async fn load_sounds(name: &str) -> Result<AudioBoard, JsValue> {
+    pub async fn load_sounds(name: &str, volume: f32) -> Result<AudioBoard, JsValue> {
         let desc = SoundAudioDescription::load(name).await?;
         let audio_context = AudioContext::new().unwrap();
 
@@ -82,7 +83,7 @@ impl AudioBoard {
             map.insert(fx, audio);
         }
 
-        let result = Self { map };
+        let result = Self { map, volume };
         Ok(result)
     }
 
@@ -94,7 +95,7 @@ impl AudioBoard {
 
         // Volume
         let gain = audio_context.create_gain().unwrap();
-        gain.gain().set_value(0.2);
+        gain.gain().set_value(self.volume);
         gain.connect_with_audio_node(&audio_context.destination())
             .unwrap();
 

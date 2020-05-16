@@ -86,14 +86,14 @@ impl Assets {
         // Music
         let mut music_players = HashMap::new();
         for &music in loading_musics.iter() {
-            let music_player = MusicPlayer::load_music(music).await?;
+            let music_player = MusicPlayer::load_music(music, configuration.sounds.music).await?;
             music_players.insert(String::from(music), Rc::new(music_player));
         }
 
         // Audio
         let mut audio_boards = HashMap::new();
         for &sheet in loading_sprites.iter() {
-            if let Ok(audio) = AudioBoard::load_sounds(sheet).await {
+            if let Ok(audio) = AudioBoard::load_sounds(sheet, configuration.sounds.fx).await {
                 audio_boards.insert(String::from(sheet), Rc::new(audio));
             }
         }

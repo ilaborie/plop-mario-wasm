@@ -51,7 +51,11 @@ impl Drawable for EntityLayer {
 
         // Draw buffer
         context
-            .draw_image_with_html_canvas_element(&self.buffer, (x - cam_x).floor(), (y - cam_y).floor())
+            .draw_image_with_html_canvas_element(
+                &self.buffer,
+                (x - cam_x).floor(),
+                (y - cam_y).floor(),
+            )
             .unwrap();
     }
 }
