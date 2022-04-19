@@ -1,3 +1,12 @@
+use std::collections::HashMap;
+use std::rc::Rc;
+
+use js_sys::Promise;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen_futures::JsFuture;
+use web_sys::{HtmlImageElement, Request, Response};
+
 use crate::assets::audio::musics::MusicPlayer;
 use crate::assets::audio::sounds::AudioBoard;
 use crate::assets::config::Configuration;
@@ -5,14 +14,6 @@ use crate::assets::font::Font;
 use crate::assets::levels::{LevelDefinition, LevelSpec};
 use crate::assets::sprites::SpriteSheet;
 use crate::utils::window;
-use js_sys::Promise;
-use std::collections::HashMap;
-use std::rc::Rc;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use wasm_bindgen::JsValue;
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{HtmlImageElement, Request, Response};
 
 pub mod animations;
 pub mod audio;

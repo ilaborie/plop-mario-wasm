@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::audio::sounds::Fx;
 use crate::assets::config::JumpingDefault;
 use crate::entity::traits::EntityTrait;
@@ -6,8 +9,6 @@ use crate::events::EventBuffer;
 use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
 use crate::scene::level::Level;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub struct Jump {
     ready: bool,

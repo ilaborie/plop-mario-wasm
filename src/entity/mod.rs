@@ -1,3 +1,13 @@
+use core::fmt;
+use core::fmt::Formatter;
+use std::cell::RefCell;
+use std::collections::HashSet;
+use std::fmt::Debug;
+use std::rc::Rc;
+use std::vec::Drain;
+
+use web_sys::AudioContext;
+
 use crate::assets::audio::sounds::{AudioBoard, Fx};
 use crate::assets::config::MobsDefault;
 use crate::entity::bullet::BulletEntity;
@@ -11,14 +21,6 @@ use crate::events::{Event, EventBuffer};
 use crate::physics::bounding_box::BBox;
 use crate::physics::{Position, Size};
 use crate::utils::log;
-use core::fmt;
-use core::fmt::Formatter;
-use std::cell::RefCell;
-use std::collections::HashSet;
-use std::fmt::Debug;
-use std::rc::Rc;
-use std::vec::Drain;
-use web_sys::AudioContext;
 
 pub mod bullet;
 pub mod cannon;
@@ -80,7 +82,7 @@ pub enum Living {
     NoExistence,
 }
 
-type Task = Box<dyn FnMut(&mut Entity) -> ()>;
+type Task = Box<dyn FnMut(&mut Entity)>;
 
 pub type EntityToCreate = (String, Rc<RefCell<dyn DrawableEntity>>);
 

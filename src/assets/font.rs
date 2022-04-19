@@ -1,8 +1,10 @@
-use crate::assets::load_image;
 use std::collections::HashMap;
 use std::rc::Rc;
+
 use wasm_bindgen::JsValue;
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
+
+use crate::assets::load_image;
 
 const CHARS: &str = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 

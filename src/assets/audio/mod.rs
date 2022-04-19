@@ -1,8 +1,10 @@
-use crate::assets::audio::musics::{MusicPlayer, Track};
 use std::rc::Rc;
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{AddEventListenerOptions, Event};
+
+use crate::assets::audio::musics::{MusicPlayer, Track};
 
 pub mod musics;
 pub mod sounds;

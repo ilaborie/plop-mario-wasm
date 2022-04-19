@@ -1,10 +1,11 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
 use crate::game::GameContext;
 use crate::physics::Position;
 use crate::scene::level::Level;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 pub struct PlayerController {
     checkpoint: Rc<RefCell<Position>>,

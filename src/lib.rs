@@ -1,11 +1,13 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
+
 use crate::assets::{Assets, TILE_SIZE};
 use crate::physics::Size;
 use crate::system::System;
 use crate::utils::{body, canvas, context_2d, log, request_animation_frame, set_panic_hook, time};
-use std::cell::RefCell;
-use std::rc::Rc;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsValue;
 
 pub mod assets;
 mod camera;
@@ -18,9 +20,6 @@ mod physics;
 mod scene;
 pub mod system;
 mod utils;
-
-#[macro_use]
-extern crate serde_derive;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -57,7 +56,7 @@ pub async fn run() -> Result<(), JsValue> {
     Ok(())
 }
 
-fn timer(mut updater: Box<dyn FnMut() -> ()>) {
+fn timer(mut updater: Box<dyn FnMut()>) {
     let mut last_time = 0.;
     let mut accumulated_time = 0.;
 

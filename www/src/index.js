@@ -5,6 +5,10 @@ import {ConsoleAppender, defaultConfig, Logger, LogLevel} from "plop-logger";
     set_panic_hook();
 
     const start = () => {
+        const elt = document.getElementById("disclaimer");
+        if (elt) {
+            elt.style.display = 'none';
+        }
         window.removeEventListener('click', start);
         run();
     };

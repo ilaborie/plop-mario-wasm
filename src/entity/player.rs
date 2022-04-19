@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::animations::AnimationName;
 use crate::assets::audio::sounds::AudioBoard;
 use crate::assets::config::PlayerDefault;
@@ -15,8 +18,6 @@ use crate::entity::{Entity, EntityFeature, Living};
 use crate::game::PlayerInfo;
 use crate::physics::bounding_box::BBox;
 use crate::physics::{Direction, Position};
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub struct PlayerEntity {
     entity: Rc<RefCell<Entity>>,

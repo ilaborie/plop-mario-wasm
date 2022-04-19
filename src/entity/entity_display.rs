@@ -1,7 +1,8 @@
+use web_sys::CanvasRenderingContext2d;
+
 use crate::assets::animations::AnimationName;
 use crate::assets::sprites::{Sprite, SpriteSheet};
 use crate::physics::Direction;
-use web_sys::CanvasRenderingContext2d;
 
 #[derive(Debug)]
 pub enum EntityDisplay {

@@ -1,12 +1,14 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use web_sys::{AudioContext, CanvasRenderingContext2d};
+
 use crate::assets::Assets;
 use crate::events::{Event, EventBuffer};
 use crate::game::{GameContext, PlayerInfo};
 use crate::input::Keyboard;
 use crate::scene::SceneRunner;
 use crate::utils::log;
-use std::cell::RefCell;
-use std::rc::Rc;
-use web_sys::{AudioContext, CanvasRenderingContext2d};
 
 pub struct System {
     audio_context: Rc<AudioContext>,
@@ -67,8 +69,8 @@ impl System {
             match event {
                 Event::SceneComplete => sr.borrow_mut().run_next(),
                 Event::GotoLevel { level, player } => {
-                    log(&format!("Goto <{}> with {:?}", level, player));
-                    sr.borrow_mut().run_level(level.as_str(), &player);
+                    log(&format!("Goto <{level}> with {player:?}"));
+                    sr.borrow_mut().run_level(level, player);
                     return;
                 }
                 _ => {} // Skip other events

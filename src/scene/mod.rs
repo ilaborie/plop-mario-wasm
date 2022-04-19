@@ -1,11 +1,12 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::Assets;
 use crate::game::{GameContext, PlayerInfo};
 use crate::input::Keyboard;
 use crate::scene::level::Level;
 use crate::scene::wait_scene::WaitScene;
 use crate::utils::log;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 pub mod level;
 pub mod wait_scene;

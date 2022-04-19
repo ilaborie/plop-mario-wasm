@@ -1,12 +1,13 @@
-use crate::assets::levels::{TriggerDefinition, TriggerKind};
-use crate::entity::Entity;
-use crate::game::PlayerInfo;
-use crate::utils::log;
 use core::cell::RefCell;
 use core::fmt::{Debug, Formatter};
 use std::any::Any;
 use std::fmt;
 use std::rc::Rc;
+
+use crate::assets::levels::{TriggerDefinition, TriggerKind};
+use crate::entity::Entity;
+use crate::game::PlayerInfo;
+use crate::utils::log;
 
 #[derive(Clone, Debug)]
 pub enum Event {
@@ -51,17 +52,11 @@ impl Event {
     }
 
     fn is_level(&self) -> bool {
-        match self {
-            Event::Hurry | Event::TimeOk | Event::Timeout => true,
-            _ => false,
-        }
+        matches!(self, Event::Hurry | Event::TimeOk | Event::Timeout)
     }
 
     fn is_system(&self) -> bool {
-        match self {
-            Event::SceneComplete | Event::GotoLevel { .. } => true,
-            _ => false,
-        }
+        matches!(self, Event::SceneComplete | Event::GotoLevel { .. })
     }
 }
 

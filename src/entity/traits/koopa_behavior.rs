@@ -1,11 +1,12 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entity::traits::walk::Walk;
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, Living};
 use crate::events::EventBuffer;
 use crate::game::GameContext;
 use crate::scene::level::Level;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum KoopaState {

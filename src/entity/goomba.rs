@@ -1,3 +1,6 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::animations::AnimationName;
 use crate::assets::sprites::Sprite;
 use crate::entity::entity_display::EntityDisplay;
@@ -9,8 +12,6 @@ use crate::entity::traits::solid::Solid;
 use crate::entity::traits::walk::Walk;
 use crate::entity::{Entity, EntityFeature, Living};
 use crate::physics::Direction;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 pub struct GoombaEntity {
     entity: Rc<RefCell<Entity>>,

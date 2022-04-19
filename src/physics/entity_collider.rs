@@ -1,8 +1,9 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entity::traits::collides;
 use crate::entity::Entity;
 use crate::events::EventBuffer;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 #[derive(Default)]
 pub struct EntityCollider {

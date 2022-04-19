@@ -1,10 +1,11 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entity::traits::EntityTrait;
 use crate::entity::Entity;
 use crate::game::GameContext;
 use crate::physics::GravityForce;
 use crate::scene::level::Level;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 pub struct Gravity {
     g: GravityForce,

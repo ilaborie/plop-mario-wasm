@@ -1,10 +1,12 @@
-use crate::utils::{log, window};
-use js_sys::ArrayBuffer;
 use std::collections::HashMap;
-use wasm_bindgen::JsCast;
-use wasm_bindgen::JsValue;
+
+use js_sys::ArrayBuffer;
+use serde::Deserialize;
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{AudioBuffer, AudioContext, Request, Response};
+
+use crate::utils::{log, window};
 
 #[derive(Deserialize)]
 pub struct FxDescription {
@@ -28,7 +30,7 @@ async fn load_audio_buffer(
     audio_context: &AudioContext,
 ) -> Result<AudioBuffer, JsValue> {
     log(&format!("Loading audio file '{}'", url));
-    let request = Request::new_with_str(&url)?;
+    let request = Request::new_with_str(url)?;
 
     let resp_value = JsFuture::from(window().fetch_with_request(&request)).await?;
     let resp: Response = resp_value.dyn_into().unwrap();
@@ -101,7 +103,7 @@ impl AudioBoard {
 
         let source = audio_context.create_buffer_source().unwrap();
         source.connect_with_audio_node(&gain).unwrap();
-        source.set_buffer(Some(&audio_buffer));
+        source.set_buffer(Some(audio_buffer));
 
         // Play
         source.start().unwrap();

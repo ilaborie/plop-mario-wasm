@@ -1,8 +1,10 @@
+use std::rc::Rc;
+
+use web_sys::CanvasRenderingContext2d;
+
 use crate::camera::Camera;
 use crate::layers::Drawable;
 use crate::physics::Size;
-use std::rc::Rc;
-use web_sys::CanvasRenderingContext2d;
 
 #[derive(Copy, Clone, Debug)]
 pub struct BBox {

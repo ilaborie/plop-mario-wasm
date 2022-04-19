@@ -1,12 +1,13 @@
+use core::cell::RefCell;
+use std::cell::Cell;
+use std::rc::Rc;
+
 use crate::assets::audio::sounds::Fx;
 use crate::entity::bullet::BulletEntity;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::emitter::Emitter;
 use crate::entity::Entity;
 use crate::physics::bounding_box::BBox;
-use core::cell::RefCell;
-use std::cell::Cell;
-use std::rc::Rc;
 
 const HOLD_FIRE_THRESHOLD: f64 = 30.;
 

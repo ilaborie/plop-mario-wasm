@@ -1,7 +1,9 @@
-use crate::camera::Camera;
 use std::cell::RefCell;
 use std::rc::Rc;
+
 use web_sys::CanvasRenderingContext2d;
+
+use crate::camera::Camera;
 
 pub mod backgrounds;
 pub mod collision;

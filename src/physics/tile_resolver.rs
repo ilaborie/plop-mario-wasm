@@ -1,8 +1,9 @@
-use crate::assets::levels::TileData;
-use crate::physics::matrix::Matrix;
 use std::cell::RefCell;
 use std::ops::Range;
 use std::rc::Rc;
+
+use crate::assets::levels::TileData;
+use crate::physics::matrix::Matrix;
 
 pub struct TileResolver {
     tiles: Rc<RefCell<Matrix<TileData>>>,

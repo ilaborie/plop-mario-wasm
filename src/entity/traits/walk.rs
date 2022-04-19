@@ -1,10 +1,11 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
 use crate::game::GameContext;
 use crate::physics::bounding_box::BBox;
 use crate::scene::level::Level;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub struct Walk {
     speed: f64,

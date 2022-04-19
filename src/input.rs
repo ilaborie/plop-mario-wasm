@@ -1,14 +1,17 @@
-use crate::assets::config::Configuration;
-use crate::physics::Direction;
-use crate::physics::Direction::{Left, Right};
-use crate::utils::window;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
+
+use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::KeyboardEvent;
+
+use crate::assets::config::Configuration;
+use crate::physics::Direction;
+use crate::physics::Direction::{Left, Right};
+use crate::utils::window;
 
 #[derive(Deserialize, Hash, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Action {

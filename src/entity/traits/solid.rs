@@ -1,8 +1,9 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entity::traits::EntityTrait;
 use crate::entity::{Entity, ObstructionSide};
 use crate::physics::bounding_box::BBox;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub struct Solid {
     obstructs: bool,

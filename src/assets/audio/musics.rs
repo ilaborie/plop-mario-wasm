@@ -1,9 +1,11 @@
-use crate::utils::{log, window};
 use std::collections::HashMap;
-use wasm_bindgen::JsCast;
-use wasm_bindgen::JsValue;
+
+use serde::Deserialize;
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{HtmlAudioElement, Request, Response};
+
+use crate::utils::{log, window};
 
 #[derive(Hash, Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Track {
@@ -50,8 +52,10 @@ impl MusicPlayer {
     pub async fn load_music(name: &str, volume: f64) -> Result<MusicPlayer, JsValue> {
         let desc = MusicDescription::load(name).await?;
 
-        let mut result = Self::default();
-        result.volume = volume;
+        let mut result = MusicPlayer {
+            volume,
+            ..Default::default()
+        };
 
         if let Some(main) = desc.main {
             result.add_track(Track::Main, main.url.as_str(), true);

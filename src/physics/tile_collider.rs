@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::levels::{TileData, TileType};
 use crate::assets::sprites::Sprite;
 use crate::assets::TILE_SIZE;
@@ -7,8 +10,6 @@ use crate::events::EventBuffer;
 use crate::physics::bounding_box::BBox;
 use crate::physics::matrix::Matrix;
 use crate::physics::tile_resolver::TileResolver;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub struct TileCollider {
     resolvers: Vec<TileResolver>,

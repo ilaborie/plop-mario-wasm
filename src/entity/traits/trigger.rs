@@ -1,11 +1,12 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::levels::TriggerDefinition;
 use crate::entity::traits::EntityTrait;
 use crate::entity::Entity;
 use crate::events::EventBuffer;
 use crate::game::GameContext;
 use crate::scene::level::Level;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 pub struct TriggerTrait {
     touches: Vec<Rc<RefCell<Entity>>>,

@@ -1,6 +1,7 @@
-use crate::physics::{Position, Size};
 use core::cell::RefCell;
 use std::rc::Rc;
+
+use crate::physics::{Position, Size};
 
 pub struct Camera {
     position: Rc<RefCell<Position>>,

@@ -1,11 +1,14 @@
+use std::collections::HashMap;
+use std::rc::Rc;
+
+use serde::Deserialize;
+use wasm_bindgen::JsValue;
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
+
 use crate::assets::animations::{Animation, AnimationDefinition, AnimationName};
 use crate::assets::{load_image, load_json, TILE_SIZE};
 use crate::physics::{Direction, Size};
 use crate::utils::{create_image_buffer, log};
-use std::collections::HashMap;
-use std::rc::Rc;
-use wasm_bindgen::JsValue;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
 
 #[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Sprite {
@@ -292,7 +295,7 @@ impl SpriteSheet {
             .get(&sprite)
             .unwrap_or_else(|| panic!("[{}] Sprite {:?} not found!", self.name, sprite));
         context
-            .draw_image_with_html_canvas_element(&buffer, x.floor(), y.floor())
+            .draw_image_with_html_canvas_element(buffer, x.floor(), y.floor())
             .unwrap();
     }
 

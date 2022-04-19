@@ -1,9 +1,12 @@
+use std::collections::HashMap;
+use std::rc::Rc;
+
+use serde::Deserialize;
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
+
 use crate::assets::sprites::{Rectangle, Sprite};
 use crate::physics::Direction;
 use crate::utils::create_image_buffer;
-use std::collections::HashMap;
-use std::rc::Rc;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
 
 #[derive(Deserialize, Hash, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AnimationName {
@@ -34,7 +37,7 @@ impl AnimationDefinition {
         self.name
     }
     pub fn frames(&self) -> &[Sprite] {
-        &self.frames.as_slice()
+        self.frames.as_slice()
     }
 }
 
@@ -105,7 +108,7 @@ impl Animation {
             )
         });
         context
-            .draw_image_with_html_canvas_element(&buffer, x.floor(), y.floor())
+            .draw_image_with_html_canvas_element(buffer, x.floor(), y.floor())
             .unwrap();
     }
 }

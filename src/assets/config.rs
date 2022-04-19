@@ -1,9 +1,12 @@
+use std::collections::HashMap;
+
+use serde::Deserialize;
+use wasm_bindgen::prelude::*;
+
 use crate::assets::load_json;
 use crate::assets::sprites::Rectangle;
 use crate::input::Action;
 use crate::physics::{Direction, Position, Size};
-use std::collections::HashMap;
-use wasm_bindgen::prelude::*;
 
 #[derive(Deserialize, Copy, Clone, Debug)]
 pub struct JumpingDefault {

@@ -1,13 +1,15 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use wasm_bindgen::JsValue;
+use web_sys::CanvasRenderingContext2d;
+
 use crate::assets::TILE_SIZE;
 use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::Living;
 use crate::layers::Drawable;
 use crate::physics::tile_resolver::TileResolver;
-use std::cell::RefCell;
-use std::rc::Rc;
-use wasm_bindgen::JsValue;
-use web_sys::CanvasRenderingContext2d;
 
 pub struct CollisionLayer {
     entity: Rc<RefCell<dyn DrawableEntity>>,

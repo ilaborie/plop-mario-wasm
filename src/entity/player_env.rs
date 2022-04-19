@@ -1,3 +1,10 @@
+use core::cell::RefCell;
+use core::fmt;
+use core::fmt::{Debug, Formatter};
+use std::cell::Cell;
+use std::hash::{Hash, Hasher};
+use std::rc::Rc;
+
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::player::PlayerEntity;
 use crate::entity::traits::level_timer::LevelTimer;
@@ -7,12 +14,6 @@ use crate::game::PlayerInfo;
 use crate::input::ActionHandler;
 use crate::physics::bounding_box::BBox;
 use crate::physics::{Direction, Position, Size};
-use core::cell::RefCell;
-use core::fmt;
-use core::fmt::{Debug, Formatter};
-use std::cell::Cell;
-use std::hash::{Hash, Hasher};
-use std::rc::Rc;
 
 pub struct PlayerEnv {
     entity: Rc<RefCell<Entity>>,
@@ -32,7 +33,7 @@ impl PlayerEnv {
         let checkpoint = Rc::new(RefCell::new(checkpoint));
 
         // Traits
-        let controller = PlayerController::new(player.clone().borrow().entity(), checkpoint);
+        let controller = PlayerController::new(player.borrow().entity(), checkpoint);
         let controller = Rc::new(RefCell::new(controller));
         let level_timer = LevelTimer::new(300., 100.);
         let level_timer = Rc::new(RefCell::new(level_timer));

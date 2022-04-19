@@ -1,3 +1,8 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+
 use crate::assets::sprites::SpriteSheet;
 use crate::camera::Camera;
 use crate::entity::entity_drawable::DrawableEntity;
@@ -5,9 +10,6 @@ use crate::entity::Living;
 use crate::layers::Drawable;
 use crate::physics::Size;
 use crate::utils::{canvas, context_2d};
-use std::cell::RefCell;
-use std::rc::Rc;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 pub struct EntityLayer {
     buffer: HtmlCanvasElement,

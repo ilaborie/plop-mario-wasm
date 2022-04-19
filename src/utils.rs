@@ -1,10 +1,12 @@
-use crate::assets::sprites::Rectangle;
-use crate::physics::Size;
 use std::f64;
 use std::rc::Rc;
+
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlImageElement, Window};
+
+use crate::assets::sprites::Rectangle;
+use crate::physics::Size;
 
 #[wasm_bindgen]
 extern "C" {
@@ -73,7 +75,7 @@ pub fn context_2d(canvas: &HtmlCanvasElement) -> CanvasRenderingContext2d {
 
 pub fn create_buffer<T>(size: Size, closure: T) -> HtmlCanvasElement
 where
-    T: FnOnce(CanvasRenderingContext2d) -> (),
+    T: FnOnce(CanvasRenderingContext2d),
 {
     let buffer = canvas(size);
     let context = context_2d(&buffer);

@@ -1,11 +1,12 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::levels::TriggerDefinition;
 use crate::entity::entity_drawable::DrawableEntity;
 use crate::entity::traits::trigger::TriggerTrait;
 use crate::entity::Entity;
 use crate::physics::bounding_box::BBox;
 use crate::physics::Size;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 pub struct TriggerEntity {
     entity: Rc<RefCell<Entity>>,

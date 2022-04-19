@@ -1,10 +1,12 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
+use web_sys::CanvasRenderingContext2d;
+
 use crate::assets::font::Font;
 use crate::entity::player_env::PlayerEnv;
 use crate::game::GameContext;
 use crate::scene::level::Level;
-use core::cell::RefCell;
-use std::rc::Rc;
-use web_sys::CanvasRenderingContext2d;
 
 pub struct Dashboard {
     font: Rc<Font>,

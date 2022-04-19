@@ -1,9 +1,10 @@
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
+
 use crate::assets::audio::sounds::Fx;
 use crate::entity::traits::EntityTrait;
 use crate::entity::Entity;
 use crate::game::PlayerInfo;
-use std::cell::{Cell, RefCell};
-use std::rc::Rc;
 
 const COIN_LIVE_THRESHOLD: u32 = 100;
 

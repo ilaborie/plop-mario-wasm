@@ -1,3 +1,6 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::animations::AnimationName;
 use crate::assets::sprites::Sprite;
 use crate::entity::entity_display::EntityDisplay;
@@ -8,8 +11,6 @@ use crate::entity::traits::solid::Solid;
 use crate::entity::traits::velocity::Velocity;
 use crate::entity::{Entity, EntityFeature};
 use crate::physics::Direction;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 pub struct BulletEntity {
     entity: Rc<RefCell<Entity>>,

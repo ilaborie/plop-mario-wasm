@@ -1,3 +1,12 @@
+use core::cell::RefCell;
+use core::fmt;
+use core::fmt::Formatter;
+use std::cell::Cell;
+use std::fmt::Debug;
+use std::rc::Rc;
+
+use web_sys::AudioContext;
+
 use crate::assets::audio::MusicController;
 use crate::assets::levels::TriggerDefinition;
 use crate::assets::sprites::SpriteSheet;
@@ -20,17 +29,9 @@ use crate::layers::entity::EntityLayer;
 use crate::layers::{Compositor, Drawable};
 use crate::physics::entity_collider::EntityCollider;
 use crate::physics::tile_collider::TileCollider;
-use crate::physics::Position;
-use crate::physics::{GravityForce, Size};
+use crate::physics::{GravityForce, Position, Size};
 use crate::scene::Scene;
 use crate::utils::log;
-use core::cell::RefCell;
-use core::fmt;
-use core::fmt::Formatter;
-use std::cell::Cell;
-use std::fmt::Debug;
-use std::rc::Rc;
-use web_sys::AudioContext;
 
 pub struct Level {
     name: String,
@@ -150,7 +151,7 @@ impl Level {
             self.music_controller.play_theme();
             input.borrow_mut().register(player);
         } else {
-            let player = self.create_player(&player_info, position);
+            let player = self.create_player(player_info, position);
             input.borrow_mut().register(player);
         }
     }
@@ -337,7 +338,7 @@ impl Scene for Level {
         self.entities_tasks(context.emitter());
 
         // Dashboard
-        self.dashboard.draw(&context, self);
+        self.dashboard.draw(context, self);
     }
 
     fn update(&mut self, context: &GameContext) {

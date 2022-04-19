@@ -1,9 +1,12 @@
+use std::collections::HashMap;
+use std::slice::Iter;
+
+use serde::Deserialize;
+use wasm_bindgen::JsValue;
+
 use crate::assets::load_json;
 use crate::assets::tiles::TilesDefinition;
 use crate::utils::log;
-use std::collections::HashMap;
-use std::slice::Iter;
-use wasm_bindgen::JsValue;
 
 #[derive(Deserialize)]
 pub struct PatternDefinition {

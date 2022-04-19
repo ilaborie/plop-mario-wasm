@@ -1,5 +1,7 @@
 use std::ops::Mul;
 
+use serde::Deserialize;
+
 pub mod bounding_box;
 pub mod entity_collider;
 pub mod matrix;

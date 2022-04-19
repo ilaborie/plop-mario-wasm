@@ -2,7 +2,7 @@
 name = "plop-mario-wasm"
 version = "0.1.0"
 authors = ["igor <ilaborie@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -11,12 +11,11 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-console_error_panic_hook = { version = "0.1.1", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 
-wee_alloc = { version = "0.4.2", optional = true }
+wee_alloc = { version = "0.4", optional = true }
 
 serde = {version = "1.0", features=["derive"]}
-serde_derive = "1.0"
 
 wasm-bindgen-futures = "0.4"
 wasm-bindgen = {version = "0.2", features = ["serde-serialize"]}
@@ -24,7 +23,7 @@ wasm-bindgen = {version = "0.2", features = ["serde-serialize"]}
 js-sys = "0.3"
 
 [dependencies.web-sys]
-version ="0.3.39"
+version ="0.3"
 features = [
     # Basic DOM
     "Window",

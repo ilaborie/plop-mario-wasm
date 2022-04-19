@@ -1,3 +1,10 @@
+use core::cell::RefCell;
+use core::ops::RangeInclusive;
+use std::cell::Cell;
+use std::rc::Rc;
+
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+
 use crate::assets::levels::TileData;
 use crate::assets::sprites::SpriteSheet;
 use crate::assets::TILE_SIZE;
@@ -7,11 +14,6 @@ use crate::physics::matrix::Matrix;
 use crate::physics::tile_resolver::TileResolver;
 use crate::physics::{Direction, Size};
 use crate::utils::{canvas, context_2d};
-use core::cell::RefCell;
-use core::ops::RangeInclusive;
-use std::cell::Cell;
-use std::rc::Rc;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 pub struct BackgroundsLayer {
     size: Size,

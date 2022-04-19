@@ -1,13 +1,14 @@
-use crate::entity::{Entity, ObstructionSide};
-use crate::events::EventBuffer;
-use crate::game::GameContext;
-use crate::physics::bounding_box::BBox;
-use crate::scene::level::Level;
 use core::fmt;
 use core::fmt::Formatter;
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::rc::Rc;
+
+use crate::entity::{Entity, ObstructionSide};
+use crate::events::EventBuffer;
+use crate::game::GameContext;
+use crate::physics::bounding_box::BBox;
+use crate::scene::level::Level;
 
 pub mod bullet_behavior;
 pub mod emitter;
@@ -56,7 +57,7 @@ impl Debug for dyn EntityTrait {
 }
 
 pub fn update(entity: Rc<RefCell<Entity>>, context: &GameContext, level: &Level) {
-    let traits = entity.clone().borrow().traits.clone();
+    let traits = entity.borrow().traits.clone();
 
     for t in traits.into_iter() {
         t.clone()
@@ -68,7 +69,7 @@ pub fn update(entity: Rc<RefCell<Entity>>, context: &GameContext, level: &Level)
 }
 
 pub fn obstruct(entity: Rc<RefCell<Entity>>, side: ObstructionSide, rect: BBox) {
-    let mut traits = entity.clone().borrow().traits.clone();
+    let mut traits = entity.borrow().traits.clone();
     // NOTE: obstruct is called during the update of the Physics trait
     //       therefore, the Physics trait is borrowed and we cannot borrow it again
     //       so we remove it form the list trait

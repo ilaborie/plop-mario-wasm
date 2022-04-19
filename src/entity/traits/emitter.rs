@@ -1,11 +1,12 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::entity::traits::EntityTrait;
 use crate::entity::Entity;
 use crate::game::GameContext;
 use crate::scene::level::Level;
-use core::cell::RefCell;
-use std::rc::Rc;
 
-type EntityEmitter = Box<dyn Fn(Rc<RefCell<Entity>>, &Level) -> ()>;
+type EntityEmitter = Box<dyn Fn(Rc<RefCell<Entity>>, &Level)>;
 
 pub struct Emitter {
     interval: f64,

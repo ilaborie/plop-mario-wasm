@@ -1,3 +1,10 @@
+use core::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
+
+use serde::Deserialize;
+use wasm_bindgen::prelude::*;
+
 use crate::assets::animations::AnimationName;
 use crate::assets::patterns::{load_patterns, PatternDefinition};
 use crate::assets::sprites::{Sprite, SpriteSheet};
@@ -7,10 +14,6 @@ use crate::physics::bounding_box::BBox;
 use crate::physics::matrix::Matrix;
 use crate::physics::{Position, Size};
 use crate::utils::log;
-use core::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
-use wasm_bindgen::prelude::*;
 
 #[derive(Deserialize, Copy, Clone, Debug, Eq, PartialEq)]
 pub enum TileType {
@@ -209,8 +212,7 @@ impl LevelDefinition {
         let mut result = vec![];
         for tiles in pattern_definition.tiles() {
             for (x, y) in tiles.coords() {
-                for &(offset_x, offset_y, mut data) in self.get_tiles_data(tiles, &patterns).iter()
-                {
+                for &(offset_x, offset_y, mut data) in self.get_tiles_data(tiles, patterns).iter() {
                     data.offset(x, y);
                     result.push((x + offset_x, y + offset_y, data));
                 }

@@ -1,13 +1,15 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use wasm_bindgen::JsValue;
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+
 use crate::assets::font::Font;
 use crate::assets::sprites::Sprite;
 use crate::entity::entity_display::EntityDisplay;
 use crate::physics::Size;
 use crate::scene::level::Level;
 use crate::utils::{canvas, context_2d};
-use std::cell::RefCell;
-use std::rc::Rc;
-use wasm_bindgen::JsValue;
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 pub struct PlayerProgress {
     font: Rc<Font>,

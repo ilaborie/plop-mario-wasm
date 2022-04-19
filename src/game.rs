@@ -1,7 +1,9 @@
-use crate::events::EventBuffer;
 use std::cell::RefCell;
 use std::rc::Rc;
+
 use web_sys::{AudioContext, CanvasRenderingContext2d};
+
+use crate::events::EventBuffer;
 
 #[derive(Clone, Debug)]
 pub struct PlayerInfo {

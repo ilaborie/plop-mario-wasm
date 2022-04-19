@@ -1,3 +1,6 @@
+use core::cell::RefCell;
+use std::rc::Rc;
+
 use crate::assets::font::Font;
 use crate::game::GameContext;
 use crate::layers::colors::ColorsLayer;
@@ -5,8 +8,6 @@ use crate::layers::dashboard::Dashboard;
 use crate::layers::player_progress::PlayerProgress;
 use crate::scene::level::Level;
 use crate::scene::Scene;
-use core::cell::RefCell;
-use std::rc::Rc;
 
 pub struct WaitScene {
     count_down: f64,

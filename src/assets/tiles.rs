@@ -1,3 +1,5 @@
+use serde::Deserialize;
+
 use crate::assets::animations::AnimationName;
 use crate::assets::levels::{TileData, TileType};
 use crate::assets::sprites::Sprite;
